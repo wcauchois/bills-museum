@@ -9,13 +9,13 @@ import * as THREE from "three"
 const scene = new THREE.Scene()
 ;(window as any).globalScene = scene
 
-// const light = new THREE.DirectionalLight(0xd5deff)
-// light.position.x = 4
-// light.position.y = 5
-// light.position.z = 1
-// scene.add(light)
-const light = new THREE.HemisphereLight(0xffffbb, 0x080820, 1)
+const light = new THREE.DirectionalLight(0xd5deff)
+light.position.x = 4
+light.position.y = 5
+light.position.z = 1
 scene.add(light)
+// const light = new THREE.HemisphereLight(0xffffbb, 0x080820, 1)
+// scene.add(light)
 
 const geometry = new THREE.BoxGeometry(1, 1, 1)
 const material = new THREE.MeshLambertMaterial({
@@ -30,7 +30,6 @@ const camera = new THREE.PerspectiveCamera(
 	0.1,
 	1000
 )
-camera.position.z = 4
 
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
@@ -106,35 +105,57 @@ class FirstPersonCamera {
 	private translation: THREE.Vector3
 	private phi: number
 	private theta: number
-	private inputController: InputController
+	private input: InputController
 
 	constructor(inputController: InputController, camera: THREE.Camera) {
-		this.inputController = inputController
+		this.input = inputController
 		this.camera = camera
 		this.rotation = new THREE.Quaternion()
-		this.translation = new THREE.Vector3()
+		this.translation = new THREE.Vector3(0, 0, 4)
 		this.phi = 0
 		this.theta = 0
 	}
 
-	update() {
+	update(timeElapsedS: number) {
 		this.updateRotation()
+		this.updateTranslation(timeElapsedS)
+
 		this.updateCamera()
 	}
 
 	private updateCamera() {
 		this.camera.quaternion.copy(this.rotation)
+		this.camera.position.copy(this.translation)
+	}
+
+	private updateTranslation(timeElapsedS: number) {
+		const forwardVelocity =
+			(this.input.keys["w"] ? 1 : 0) + (this.input.keys["s"] ? -1 : 0)
+		const strafeVelocity =
+			(this.input.keys["a"] ? 1 : 0) + (this.input.keys["d"] ? -1 : 0)
+
+		const qx = new THREE.Quaternion()
+		qx.setFromAxisAngle(new THREE.Vector3(0, 1, 0), this.phi)
+
+		const forward = new THREE.Vector3(0, 0, -1)
+		forward.applyQuaternion(qx)
+		forward.multiplyScalar(forwardVelocity * timeElapsedS * 10)
+
+		const left = new THREE.Vector3(-1, 0, 0)
+		left.applyQuaternion(qx)
+		left.multiplyScalar(strafeVelocity * timeElapsedS * 10)
+
+		this.translation.add(forward)
+		this.translation.add(left)
 	}
 
 	private updateRotation() {
-		const xh = this.inputController.mouseDeltaX / window.innerWidth
-		const yh = this.inputController.mouseDeltaY / window.innerHeight
-		this.inputController.resetMouseDelta()
-		console.log(yh)
+		const xh = this.input.mouseDeltaX / window.innerWidth
+		const yh = this.input.mouseDeltaY / window.innerHeight
+		this.input.resetMouseDelta()
 
 		this.phi += -xh * 5
 		this.theta = clamp(this.theta + -yh * 5, -Math.PI / 3, Math.PI / 3)
-		console.log(this.theta)
 
 		const qx = new THREE.Quaternion()
 		qx.setFromAxisAngle(new THREE.Vector3(0, 1, 0), this.phi)
@@ -152,8 +173,12 @@ class FirstPersonCamera {
 const inputController = new InputController(renderer.domElement)
 const firstPersonCamera = new FirstPersonCamera(inputController, camera)
 
-function animate() {
-	firstPersonCamera.update()
+let lastTime = 0
+function animate(time: number) {
+	const timeElapsedS = (time - lastTime) / 1000
+	lastTime = time
+
+	firstPersonCamera.update(timeElapsedS)
 	renderer.render(scene, camera)
 }
 

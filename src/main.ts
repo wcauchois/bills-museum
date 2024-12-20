@@ -49,16 +49,49 @@ drawCanvas.width = 512
 drawCanvas.height = 512
 const drawContext = drawCanvas.getContext("2d")!
 
-drawContext.fillStyle = "red"
+drawContext.fillStyle = "white"
+drawContext.fillRect(0, 0, drawCanvas.width, drawCanvas.height)
+drawContext.fillStyle = "black"
 
-drawContext.font = "50px serif"
-drawContext.fillText("Hello, World!", 50, 90)
+drawContext.font = "50px 'Roboto Mono'"
+
+/**
+ * https://stackoverflow.com/a/16599668
+ */
+function getBrokenLinesForCanvas(
+	ctx: CanvasRenderingContext2D,
+	text: string,
+	maxWidth: number
+) {
+	var words = text.split(" ")
+	var lines = []
+	var currentLine = words[0]
+
+	for (var i = 1; i < words.length; i++) {
+		var word = words[i]
+		var width = ctx.measureText(currentLine + " " + word).width
+		if (width < maxWidth) {
+			currentLine += " " + word
+		} else {
+			lines.push(currentLine)
+			currentLine = word
+		}
+	}
+	lines.push(currentLine)
+	return lines
+}
+
+const str = "Death is so terribly final, while life is full of possibilities."
+const lines = getBrokenLinesForCanvas(drawContext, str, 512)
+for (const [i, line] of lines.entries()) {
+	drawContext.fillText(line, 50, 90 + i * 50, 512)
+}
 
 const tex = new THREE.CanvasTexture(drawCanvas)
 
-const plane2Geometry = new THREE.PlaneGeometry(20, 5)
+const plane2Geometry = new THREE.PlaneGeometry(5, 5)
 const plane2Material = new THREE.MeshBasicMaterial({
-	color: 0xff0000,
+	color: 0xffffff,
 	side: THREE.DoubleSide,
 	map: tex,
 })

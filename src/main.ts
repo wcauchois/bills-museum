@@ -1,28 +1,37 @@
 import "./style.css"
 
-import { pipeline } from "@huggingface/transformers"
-
 import { worker } from "./worker/workerClient"
+import * as THREE from "three"
 
-console.log(await worker.getRelevantQuotes("death"))
+// console.log(await worker.getRelevantQuotes("death"))
 
-// const [sqlite_version, vec_version] = db.selectArray("select vec_version();")
-// console.log(`${sqlite_version}, vec_version=${vec_version}`)
+const scene = new THREE.Scene()
+;(window as any).globalScene = scene
 
-// console.log("response from worker:", await callWorkerApi("ping", "hello"))
-
-/*
-const extractor = await pipeline(
-	"feature-extraction",
-	"Xenova/all-MiniLM-L6-v2",
-	{
-		dtype: "fp32",
-	}
-)
-const output = await extractor("This is a simple test.", {
-	pooling: "mean",
-	normalize: true,
+const geometry = new THREE.BoxGeometry(1, 1, 1)
+const material = new THREE.MeshBasicMaterial({
+	color: 0x00ff00,
+	wireframe: true,
 })
-console.log("output:", output.tolist())
+const cube = new THREE.Mesh(geometry, material)
+scene.add(cube)
 
-*/
+const camera = new THREE.PerspectiveCamera(
+	75,
+	window.innerWidth / window.innerHeight,
+	0.1,
+	1000
+)
+camera.position.z = 4
+
+const renderer = new THREE.WebGLRenderer()
+renderer.setSize(window.innerWidth, window.innerHeight)
+document.body.appendChild(renderer.domElement)
+
+function animate() {
+	cube.rotation.x += 0.01
+	cube.rotation.y += 0.01
+	renderer.render(scene, camera)
+}
+
+renderer.setAnimationLoop(animate)

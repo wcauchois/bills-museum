@@ -8,7 +8,7 @@ const extractor = await pipeline(
 	}
 )
 
-const output = await extractor("This is a simple test.", {
+const output = await extractor(["This is a simple test.", "another test"], {
 	pooling: "mean",
 	normalize: true,
 })

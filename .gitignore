@@ -24,4 +24,4 @@ dist-ssr
 *.sw?
 
 # Custom
-data/*.{csv,txt}
+data/*.{csv,txt,jsonl}

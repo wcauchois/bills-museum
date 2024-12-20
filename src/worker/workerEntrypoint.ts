@@ -59,6 +59,40 @@ const workerApi = {
 	ping(arg: string) {
 		return "hello from worker: " + arg
 	},
+
+	async getRelevantQuotes(query: string): Promise<string[]> {
+		const extractor = await loadedExtractor.promise
+		const db = await loadedDb.promise
+
+		const output = await extractor(query, {
+			pooling: "mean",
+			normalize: true,
+		})
+		const embedding = output.tolist()[0]
+		const embeddingArray = new Float32Array(384)
+		for (let i = 0; i < 384; i++) {
+			embeddingArray[i] = embedding[i]
+		}
+
+		const result = db.exec(
+			`
+        select
+        body,
+        distance
+        from quotes
+        where embedding match $embedding
+        and k = 10
+        order by distance
+  `,
+			{
+				returnValue: "resultRows",
+				rowMode: "object",
+				bind: { $embedding: embeddingArray.buffer },
+			}
+		)
+
+		return result.map(row => row.body as string)
+	},
 }
 
 export type WorkerApi = typeof workerApi

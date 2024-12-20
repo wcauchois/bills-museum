@@ -9,10 +9,21 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/fs-extra": "^11.0.4",
+    "@types/lodash": "^4.17.13",
+    "@types/murmurhash-js": "^1.0.6",
+    "better-sqlite3": "^11.7.0",
+    "csv-parse": "^5.6.0",
+    "fs-extra": "^11.2.0",
+    "sqlite-vec": "^0.1.6",
+    "tsx": "^4.19.2",
     "typescript": "~5.6.2",
     "vite": "^6.0.3"
   },
   "dependencies": {
-    "@huggingface/transformers": "^3.2.1"
+    "@huggingface/transformers": "^3.2.1",
+    "lodash": "^4.17.21",
+    "murmurhash-js": "^1.0.0"
   }
 }

@@ -1,20 +1,10 @@
 import type { OpfsDatabase } from "@sqlite.org/sqlite-wasm"
-// import { default as initSqlite } from "sqlite-vec-wasm-demo"
 import { default as initSqlite } from "../vendor/sqlite3.mjs"
 import { FeatureExtractionPipeline, pipeline } from "@huggingface/transformers"
-import { MessageFromWorker, MessageToWorker, WorkerApis } from "./workerApis"
-import { Result } from "../lib/utils"
+import { makeDeferred } from "../lib/utils"
 import * as Comlink from "comlink"
 
-console.log("hello from web worker")
-
-Comlink.expose({
-	ping(arg: string) {
-		return "hello from worker: " + arg
-	},
-})
 // https://github.com/rhashimoto/wa-sqlite/discussions/221
-
 async function writeFileToOPFS(fileName: string, blob: Blob) {
 	const root = await navigator.storage.getDirectory()
 	const fileHandle = await root.getFileHandle(fileName, { create: true })
@@ -29,17 +19,18 @@ async function addStaticAssetToOPFS(url: string, fileName: string) {
 	await writeFileToOPFS(fileName, blob)
 }
 
-let db!: OpfsDatabase
-let extractor!: FeatureExtractionPipeline
+const loadedDb = makeDeferred<OpfsDatabase>()
+const loadedExtractor = makeDeferred<FeatureExtractionPipeline>()
 
-async function initializeWorker() {
+async function initializeDatabase() {
 	await addStaticAssetToOPFS("/quotes.db", "quotes.db")
 
 	const sqlite3 = await initSqlite()
-	db = new sqlite3.oo1.DB({
+	const db = new sqlite3.oo1.DB({
 		filename: "quotes.db",
 		vfs: "opfs",
 	})
+	loadedDb.resolve(db)
 
 	const result = db.exec(`select count(*) as c from quotes;`, {
 		returnValue: "resultRows",
@@ -47,7 +38,9 @@ async function initializeWorker() {
 	})
 
 	console.log("Number of quotes in database:", result[0].c)
+}
 
+async function initializeExtractor() {
 	const extractor = await pipeline(
 		"feature-extraction",
 		"Xenova/all-MiniLM-L6-v2",
@@ -55,6 +48,11 @@ async function initializeWorker() {
 			dtype: "fp32",
 		}
 	)
+	loadedExtractor.resolve(extractor)
+}
+
+async function initializeWorker() {
+	await Promise.all([initializeDatabase(), initializeExtractor()])
 }
 
 const workerApi = {
@@ -64,3 +62,6 @@ const workerApi = {
 }
 
 export type WorkerApi = typeof workerApi
+Comlink.expose(workerApi)
+
+void initializeWorker()

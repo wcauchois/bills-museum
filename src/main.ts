@@ -2,11 +2,22 @@ import "./style.css"
 
 import { pipeline } from "@huggingface/transformers"
 
+import { default as initSqlite } from "sqlite-vec-wasm-demo"
+
+const sqlite3 = await initSqlite()
+const db = new sqlite3.oo1.DB(":memory:")
+
+// const [sqlite_version, vec_version] = db.selectArray("select vec_version();")
+// console.log(`${sqlite_version}, vec_version=${vec_version}`)
+
+db.exec(`
+create virtual table quotes using vec0(
+  embedding float[384],
+  body text
+);
+`)
+
 /*
-const classifier = await pipeline("sentiment-analysis")
-const result = await classifier("I love transformers!")
-console.log("hello, world", result)
-*/
 const extractor = await pipeline(
 	"feature-extraction",
 	"Xenova/all-MiniLM-L6-v2",
@@ -19,3 +30,5 @@ const output = await extractor("This is a simple test.", {
 	normalize: true,
 })
 console.log("output:", output.tolist())
+
+*/

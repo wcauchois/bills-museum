@@ -25,6 +25,7 @@
   "dependencies": {
     "@huggingface/transformers": "^3.2.1",
     "lodash": "^4.17.21",
-    "murmurhash-js": "^1.0.0"
+    "murmurhash-js": "^1.0.0",
+    "sqlite-vec-wasm-demo": "^0.1.6"
   }
 }

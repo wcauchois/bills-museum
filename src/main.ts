@@ -4,10 +4,12 @@ import { pipeline } from "@huggingface/transformers"
 
 import { worker } from "./worker/workerClient"
 
+console.log(await worker.ping("hi"))
+
 // const [sqlite_version, vec_version] = db.selectArray("select vec_version();")
 // console.log(`${sqlite_version}, vec_version=${vec_version}`)
 
-worker
+// console.log("response from worker:", await callWorkerApi("ping", "hello"))
 
 /*
 const extractor = await pipeline(

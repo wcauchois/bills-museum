@@ -2,20 +2,12 @@ import "./style.css"
 
 import { pipeline } from "@huggingface/transformers"
 
-import { default as initSqlite } from "sqlite-vec-wasm-demo"
-
-const sqlite3 = await initSqlite()
-const db = new sqlite3.oo1.DB(":memory:")
+import { worker } from "./worker/workerClient"
 
 // const [sqlite_version, vec_version] = db.selectArray("select vec_version();")
 // console.log(`${sqlite_version}, vec_version=${vec_version}`)
 
-db.exec(`
-create virtual table quotes using vec0(
-  embedding float[384],
-  body text
-);
-`)
+worker
 
 /*
 const extractor = await pipeline(

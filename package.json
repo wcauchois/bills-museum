@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@sqlite.org/sqlite-wasm": "^3.47.2-build1",
     "@types/better-sqlite3": "^7.6.12",
     "@types/fs-extra": "^11.0.4",
     "@types/lodash": "^4.17.13",

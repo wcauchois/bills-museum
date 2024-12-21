@@ -20,13 +20,13 @@ scene.add(light)
 // const light = new THREE.HemisphereLight(0xffffbb, 0x080820, 1)
 // scene.add(light)
 
-const axesHelper = new THREE.AxesHelper(5)
-scene.add(axesHelper)
+// const axesHelper = new THREE.AxesHelper(5)
+// scene.add(axesHelper)
 
 const geometry = new THREE.BoxGeometry(1, 1, 1)
-const material = new THREE.MeshPhongMaterial({
-	shininess: 100,
+const material = new THREE.MeshBasicMaterial({
 	color: 0x00ff00,
+	wireframe: true,
 })
 const cube = new THREE.Mesh(geometry, material)
 cube.position.x = 0
@@ -130,6 +130,8 @@ let lastTime = 0
 function animate(time: number) {
 	const timeElapsedS = (time - lastTime) / 1000
 	lastTime = time
+
+	cube.rotation.y += 0.01
 
 	firstPersonCamera.update(timeElapsedS)
 	renderer.render(scene, camera)

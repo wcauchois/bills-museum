@@ -12,27 +12,32 @@ export class InputController {
 		this.mouseDeltaY = 0
 	}
 
-	constructor(canvas: HTMLCanvasElement) {
+	constructor(
+		canvas: HTMLCanvasElement,
+		options: { managePointerLock: boolean }
+	) {
 		this.canvas = canvas
 
-		canvas.addEventListener("click", async () => {
-			if (!document.pointerLockElement) {
-				try {
-					await canvas.requestPointerLock({
-						unadjustedMovement: true,
-					})
-				} catch (error) {
-					if ((error as any).name === "NotSupportedError") {
-						// Platform may not support unadjusted movement.
-						await canvas.requestPointerLock()
-					} else {
-						throw error
+		if (options.managePointerLock) {
+			canvas.addEventListener("click", async () => {
+				if (!document.pointerLockElement) {
+					try {
+						await canvas.requestPointerLock({
+							unadjustedMovement: true,
+						})
+					} catch (error) {
+						if ((error as any).name === "NotSupportedError") {
+							// Platform may not support unadjusted movement.
+							await canvas.requestPointerLock()
+						} else {
+							throw error
+						}
 					}
 				}
-			}
-		})
+			})
+			document.addEventListener("pointerlockchange", this.onPointerLockChange)
+		}
 
-		document.addEventListener("pointerlockchange", this.onPointerLockChange)
 		document.addEventListener("keydown", this.onKeyDown)
 		document.addEventListener("keyup", this.onKeyUp)
 	}

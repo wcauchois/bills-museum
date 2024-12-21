@@ -1,11 +1,12 @@
 import * as THREE from "three"
-import { InputController } from "./InputController"
 import { clamp } from "lodash"
+import { InputController } from "../InputController"
+import { CameraController } from "./CameraController"
 
 /**
  * https://www.youtube.com/watch?v=oqKzxPMLWxo
  */
-export class FirstPersonCamera {
+export class WalkingCameraController implements CameraController {
 	private camera: THREE.Camera
 	private rotation: THREE.Quaternion
 	private translation: THREE.Vector3
@@ -15,9 +16,12 @@ export class FirstPersonCamera {
 	private headBobActive: boolean
 	private headBobTimer: number
 
-	constructor(inputController: InputController, camera: THREE.Camera) {
-		this.input = inputController
-		this.camera = camera
+	constructor(args: {
+		inputController: InputController
+		camera: THREE.Camera
+	}) {
+		this.input = args.inputController
+		this.camera = args.camera
 		this.rotation = new THREE.Quaternion()
 		this.translation = new THREE.Vector3(0, 0, 4)
 		this.phi = 0

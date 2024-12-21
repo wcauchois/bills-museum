@@ -1,4 +1,4 @@
-type DirectionName = "north" | "east" | "south" | "west"
+export type DirectionName = "north" | "east" | "south" | "west"
 
 export class Direction2D {
 	private _opposite: Direction2D | undefined

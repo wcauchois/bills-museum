@@ -1,14 +1,20 @@
 import * as THREE from "three"
 import { InputController } from "./InputController"
-import { FirstPersonCamera } from "./FirstPersonCamera"
 import { Sky } from "three/examples/jsm/objects/Sky.js"
+import { MazeGenerator } from "./MazeGenerator"
+import { Direction2D, DirectionName } from "./Direction2D"
+import { CameraController } from "./camera/CameraController"
+import { FreeCameraController } from "./camera/FreeCameraController"
+import { WalkingCameraController } from "./camera/WalkingCameraController"
+
+const FREE_CAMERA = true
 
 export class Game {
 	private scene: THREE.Scene
 	private renderer: THREE.WebGLRenderer
-	private inputController: InputController
 	private camera: THREE.PerspectiveCamera
-	private firstPersonCamera: FirstPersonCamera
+	private inputController: InputController
+	private cameraController: CameraController
 
 	constructor() {
 		this.scene = new THREE.Scene()
@@ -26,34 +32,38 @@ export class Game {
 		this.renderer.setSize(window.innerWidth, window.innerHeight)
 		document.body.appendChild(this.renderer.domElement)
 
-		this.inputController = new InputController(this.renderer.domElement)
-		this.firstPersonCamera = new FirstPersonCamera(
-			this.inputController,
-			this.camera
-		)
+		this.inputController = new InputController(this.renderer.domElement, {
+			managePointerLock: !FREE_CAMERA,
+		})
+
+		this.cameraController = FREE_CAMERA
+			? new FreeCameraController({
+					camera: this.camera,
+					inputController: this.inputController,
+					domElement: this.renderer.domElement,
+			  })
+			: new WalkingCameraController({
+					camera: this.camera,
+					inputController: this.inputController,
+			  })
 	}
 
 	start() {
 		this.renderer.setAnimationLoop(this.animate)
 	}
 
-	private setupObjects() {
-		const light = new THREE.DirectionalLight(0xd5deff)
-		light.position.x = -50
-		light.position.y = 50
-		light.position.z = 25
-		this.scene.add(light)
+	private pointLight!: THREE.PointLight
 
-		const geometry = new THREE.BoxGeometry(1, 1, 1)
-		const material = new THREE.MeshBasicMaterial({
-			color: 0x00ff00,
-			wireframe: true,
-		})
-		const cube = new THREE.Mesh(geometry, material)
-		cube.position.x = 0
-		cube.position.y = 0
-		cube.position.z = 0
-		this.scene.add(cube)
+	private setupObjects() {
+		// const light = new THREE.DirectionalLight(0xd5deff)
+		// light.position.x = -50
+		// light.position.y = 50
+		// light.position.z = 25
+		const ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
+		this.scene.add(ambientLight)
+
+		this.pointLight = new THREE.PointLight(0xffffff, 1, 100)
+		this.scene.add(this.pointLight)
 
 		const sky = new Sky()
 		sky.scale.setScalar(450000)
@@ -66,6 +76,82 @@ export class Game {
 		)
 		sky.material.uniforms.sunPosition.value = sunPosition
 		this.scene.add(sky)
+
+		this.setupMaze()
+	}
+
+	setupMaze() {
+		const wallGeometry = new THREE.PlaneGeometry(1, 1)
+		const wallMaterial = new THREE.MeshLambertMaterial({
+			color: 0xffffff,
+			side: THREE.DoubleSide,
+		})
+
+		const makeWall = (x: number, z: number, extraTransform: THREE.Matrix4) => {
+			const mesh = new THREE.Mesh(wallGeometry, wallMaterial)
+			const transform = new THREE.Matrix4()
+			transform.multiply(new THREE.Matrix4().makeTranslation(x, 0, z))
+			transform.multiply(extraTransform)
+			transform.multiply(new THREE.Matrix4().makeTranslation(0.5, 0.5, 0))
+			mesh.matrix = transform
+			mesh.matrixAutoUpdate = false
+			return mesh
+		}
+
+		const makeWestWall = (x: number, z: number) =>
+			makeWall(
+				x,
+				z,
+				new THREE.Matrix4().makeRotationY(THREE.MathUtils.degToRad(270))
+			)
+
+		const makeNorthWall = (x: number, z: number) =>
+			makeWall(x, z, new THREE.Matrix4())
+
+		const makeEastWall = (x: number, z: number) =>
+			makeWall(
+				x,
+				z,
+				new THREE.Matrix4()
+					.makeRotationY(THREE.MathUtils.degToRad(270))
+					.multiply(new THREE.Matrix4().makeTranslation(0, 0, -1))
+			)
+
+		const makeSouthWall = (x: number, z: number) =>
+			makeWall(x, z, new THREE.Matrix4().makeTranslation(0, 0, 1))
+
+		const directionToWallFactory: Record<
+			DirectionName,
+			(x: number, z: number) => THREE.Mesh
+		> = {
+			north: makeNorthWall,
+			east: makeEastWall,
+			south: makeSouthWall,
+			west: makeWestWall,
+		}
+
+		// const helper = new THREE.AxesHelper()
+		// this.scene.add(helper)
+
+		const maze = new MazeGenerator(4)
+		maze.generate()
+
+		const group = new THREE.Group()
+
+		for (const [y, row] of maze.grid.entries()) {
+			for (const [x, cell] of row.entries()) {
+				for (const direction of Direction2D.ALL) {
+					if (!cell[direction.name]) {
+						continue
+					}
+
+					const mesh = directionToWallFactory[direction.name](x, y)
+					group.add(mesh)
+				}
+			}
+		}
+
+		this.scene.add(group)
 	}
 
 	private lastTime: number | undefined
@@ -76,7 +162,10 @@ export class Game {
 		}
 		this.lastTime = time
 
-		this.firstPersonCamera.update(timeElapsedS)
+		this.cameraController.update(timeElapsedS)
+
+		this.pointLight.position.copy(this.camera.position)
+
 		this.renderer.render(this.scene, this.camera)
 	}
 }

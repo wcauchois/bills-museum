@@ -15,9 +15,11 @@ export class Game {
 	private camera: THREE.PerspectiveCamera
 	private inputController: InputController
 	private cameraController: CameraController
+	private textureLoader: THREE.TextureLoader
 
 	constructor() {
 		this.scene = new THREE.Scene()
+		this.textureLoader = new THREE.TextureLoader()
 
 		this.camera = new THREE.PerspectiveCamera(
 			75,
@@ -25,7 +27,6 @@ export class Game {
 			0.1,
 			1000
 		)
-		this.camera.position.y = 2.5
 
 		this.setupObjects()
 
@@ -82,7 +83,7 @@ export class Game {
 		this.setupMaze()
 
 		// Floor
-		const floorGeometry = new THREE.PlaneGeometry(100, 100)
+		const floorGeometry = new THREE.PlaneGeometry(1000, 1000)
 		const floorMaterial = new THREE.MeshLambertMaterial({
 			color: 0xaaaaaa,
 			side: THREE.DoubleSide,
@@ -97,6 +98,7 @@ export class Game {
 		const wallMaterial = new THREE.MeshLambertMaterial({
 			color: 0xffffff,
 			side: THREE.DoubleSide,
+			bumpScale: 50,
 		})
 
 		const makeWall = (x: number, z: number, extraTransform: THREE.Matrix4) => {
@@ -132,38 +134,34 @@ export class Game {
 		const makeSouthWall = (x: number, z: number) =>
 			makeWall(x, z, new THREE.Matrix4().makeTranslation(0, 0, 1))
 
-		const directionToWallFactory: Record<
-			DirectionName,
-			(x: number, z: number) => THREE.Mesh
-		> = {
-			north: makeNorthWall,
-			east: makeEastWall,
-			south: makeSouthWall,
-			west: makeWestWall,
-		}
-
 		// const helper = new THREE.AxesHelper()
 		// this.scene.add(helper)
 
-		const maze = new MazeGenerator(4)
+		const maze = new MazeGenerator(10)
 		maze.generate()
+		console.log(maze.grid)
+		console.log(maze.print())
 
 		const group = new THREE.Group()
 
-		for (const [y, row] of maze.grid.entries()) {
-			for (const [x, cell] of row.entries()) {
-				for (const direction of Direction2D.ALL) {
-					if (!cell[direction.name]) {
-						continue
-					}
+		for (let x = 0; x < maze.width; x++) {
+			group.add(makeNorthWall(x, 0))
+		}
 
-					const mesh = directionToWallFactory[direction.name](x, y)
-					group.add(mesh)
+		for (let y = 0; y < maze.height; y++) {
+			group.add(makeWestWall(0, y))
+			for (let x = 0; x < maze.width; x++) {
+				if (!maze.grid[y][x].south) {
+					group.add(makeSouthWall(x, y))
+				}
+				if (!maze.grid[y][x].east) {
+					group.add(makeEastWall(x, y))
 				}
 			}
 		}
 
-		group.scale.addScalar(2)
+		group.scale.x = group.scale.z = 5
+		group.scale.y = 3
 		this.scene.add(group)
 	}
 

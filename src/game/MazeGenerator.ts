@@ -39,7 +39,7 @@ export class MazeGenerator {
 	}
 
 	private carvePassagesFrom(cx: number, cy: number) {
-		const directions = Direction2D.ALL.slice().sort(() => Math.random() - 0.5)
+		const directions = _.shuffle(Direction2D.ALL)
 		for (const direction of directions) {
 			const nx = cx + direction.x
 			const ny = cy + direction.y
@@ -52,7 +52,7 @@ export class MazeGenerator {
 			) {
 				// Cell is valid
 				this.grid[cy][cx][direction.name] = true
-				this.grid[cy][cx][direction.opposite.name] = true
+				this.grid[ny][nx][direction.opposite.name] = true
 				this.carvePassagesFrom(nx, ny)
 			}
 		}

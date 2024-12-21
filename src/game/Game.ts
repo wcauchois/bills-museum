@@ -7,7 +7,7 @@ import { CameraController } from "./camera/CameraController"
 import { FreeCameraController } from "./camera/FreeCameraController"
 import { WalkingCameraController } from "./camera/WalkingCameraController"
 
-const FREE_CAMERA = true
+const FREE_CAMERA = false
 
 export class Game {
 	private scene: THREE.Scene
@@ -25,6 +25,7 @@ export class Game {
 			0.1,
 			1000
 		)
+		this.camera.position.y = 2.5
 
 		this.setupObjects()
 
@@ -45,6 +46,7 @@ export class Game {
 			: new WalkingCameraController({
 					camera: this.camera,
 					inputController: this.inputController,
+					height: 1,
 			  })
 	}
 
@@ -62,7 +64,7 @@ export class Game {
 		const ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
 		this.scene.add(ambientLight)
 
-		this.pointLight = new THREE.PointLight(0xffffff, 1, 100)
+		this.pointLight = new THREE.PointLight(0xffffff, 10)
 		this.scene.add(this.pointLight)
 
 		const sky = new Sky()
@@ -78,6 +80,16 @@ export class Game {
 		this.scene.add(sky)
 
 		this.setupMaze()
+
+		// Floor
+		const floorGeometry = new THREE.PlaneGeometry(100, 100)
+		const floorMaterial = new THREE.MeshLambertMaterial({
+			color: 0xaaaaaa,
+			side: THREE.DoubleSide,
+		})
+		const floorMesh = new THREE.Mesh(floorGeometry, floorMaterial)
+		floorMesh.rotation.x = Math.PI / 2
+		this.scene.add(floorMesh)
 	}
 
 	setupMaze() {
@@ -151,6 +163,7 @@ export class Game {
 			}
 		}
 
+		group.scale.addScalar(2)
 		this.scene.add(group)
 	}
 

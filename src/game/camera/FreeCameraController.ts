@@ -8,7 +8,7 @@ export class FreeCameraController implements CameraController {
 	private inputController: InputController
 	private camera: THREE.Camera
 
-	public static readonly SPEED = 2
+	public static readonly SPEED = 7
 
 	constructor(args: {
 		inputController: InputController
@@ -42,18 +42,20 @@ export class FreeCameraController implements CameraController {
 				(this.inputController.keys["s"] ? -1 : 0))
 		this.camera.position.add(forward.clone().multiplyScalar(forwardAmount))
 
-		if (this.inputController.keys["a"]) {
-			this.pointerLockControls.moveRight(-moveAmount)
-		}
-		if (this.inputController.keys["d"]) {
-			this.pointerLockControls.moveRight(moveAmount)
-		}
+		// Calculating right/up vectors: https://gamedev.stackexchange.com/a/139704
+		const worldUp = new THREE.Vector3(0, 1, 0)
+		const right = forward.clone().cross(worldUp).normalize()
+		const strafeAmount =
+			moveAmount *
+			((this.inputController.keys["d"] ? 1 : 0) +
+				(this.inputController.keys["a"] ? -1 : 0))
+		this.camera.position.add(right.clone().multiplyScalar(strafeAmount))
 
-		const up = new THREE.Vector3(0, 1, 0)
-		const upAmount =
+		const up = right.clone().cross(forward).normalize()
+		const verticalAmount =
 			moveAmount *
 			((this.inputController.keys["q"] ? 1 : 0) +
 				(this.inputController.keys["e"] ? -1 : 0))
-		this.camera.position.add(up.clone().multiplyScalar(upAmount))
+		this.camera.position.add(up.clone().multiplyScalar(verticalAmount))
 	}
 }

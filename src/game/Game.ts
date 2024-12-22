@@ -106,7 +106,7 @@ export class Game {
 					camera: this.camera,
 					inputController: this.inputController,
 					initialPosition: this.mazeToWorld(
-						Game.MAZE_SIZE + 1,
+						Game.MAZE_SIZE / 2,
 						Game.MAZE_SIZE / 2
 					).setY(1),
 			  })
@@ -228,56 +228,87 @@ export class Game {
 		group.scale.y = 3
 		this.scene.add(group)
 
-		worker.getRelevantQuotes(this.queryString).then(quotes => {
-			for (const [i, mesh] of chooseN(allWallMeshes, 10).entries()) {
-				const quote = quotes[i]
-				const canvas = document.createElement("canvas")
-				canvas.width = 512
-				canvas.height = 512
-				const context = canvas.getContext("2d")!
-				context.fillStyle = "white"
-				context.fillRect(0, 0, 512, 512)
-				context.fillStyle = "black"
-				context.font = "48px monospace"
-				const lines = getBrokenLinesForCanvas(context, quote, 512)
-				for (const [lineNumber, line] of lines.entries()) {
-					context.fillText(line, 10, 10 + 48 * (lineNumber + 1))
-				}
+		this.setupQuotes({ allWallMeshes, group, wallGeometry })
+	}
 
-				// Different front/back texture: https://stackoverflow.com/a/17602666
-				const backCanvas = document.createElement("canvas")
-				backCanvas.width = 512
-				backCanvas.height = 512
-				const backContext = backCanvas.getContext("2d")!
-				// Flip image horizontally: https://stackoverflow.com/a/3129152
-				backContext.translate(512, 0)
-				backContext.scale(-1, 1)
-				backContext.drawImage(canvas, 0, 0)
+	async setupQuotes(args: {
+		allWallMeshes: THREE.Mesh[]
+		group: THREE.Group
+		wallGeometry: THREE.PlaneGeometry
+	}) {
+		const { allWallMeshes, group, wallGeometry } = args
 
-				// Replace with a two-sided wall.
-				group.remove(mesh)
+		// https://www.1001fonts.com/shockwave-font.html
+		const font = new FontFace("Shockwave", `url("/Shockwave.woff")`)
+		document.fonts.add(font)
+		font.load()
 
-				const frontMaterial = new THREE.MeshLambertMaterial({
-					color: 0xffffff,
-					side: THREE.FrontSide,
-					map: new THREE.CanvasTexture(canvas),
-				})
-				const frontMesh = new THREE.Mesh(wallGeometry, frontMaterial)
-				frontMesh.matrix.copy(mesh.matrix)
-				frontMesh.matrixAutoUpdate = false
-				group.add(frontMesh)
+		const quotes = await worker.getRelevantQuotes(this.queryString)
+		await document.fonts.ready
 
-				const backMaterial = new THREE.MeshLambertMaterial({
-					color: 0xffffff,
-					side: THREE.BackSide,
-					map: new THREE.CanvasTexture(backCanvas),
-				})
-				const backMesh = new THREE.Mesh(wallGeometry, backMaterial)
-				backMesh.matrix.copy(mesh.matrix)
-				backMesh.matrixAutoUpdate = false
-				group.add(backMesh)
+		for (const [i, mesh] of chooseN(allWallMeshes, 10).entries()) {
+			const quote = quotes[i]
+			const frontCanvas = document.createElement("canvas")
+			frontCanvas.width = 512
+			frontCanvas.height = 512
+			const frontContext = frontCanvas.getContext("2d")!
+			frontContext.fillStyle = "white"
+			frontContext.fillRect(0, 0, 512, 512)
+			frontContext.fillStyle = "black"
+			const fontSize = 48
+			frontContext.font = `${fontSize}px 'Shockwave'`
+
+			const inlineMargin = 10
+			const lines = getBrokenLinesForCanvas(
+				frontContext,
+				quote,
+				512 - inlineMargin * 2
+			)
+			const blockMargin = Math.max(
+				0,
+				Math.ceil((512 - lines.length * fontSize) / 2)
+			)
+			for (const [lineNumber, line] of lines.entries()) {
+				frontContext.fillText(
+					line,
+					inlineMargin,
+					blockMargin + fontSize * (lineNumber + 1)
+				)
 			}
-		})
+
+			// Different front/back texture: https://stackoverflow.com/a/17602666
+			const backCanvas = document.createElement("canvas")
+			backCanvas.width = 512
+			backCanvas.height = 512
+			const backContext = backCanvas.getContext("2d")!
+			// Flip image horizontally: https://stackoverflow.com/a/3129152
+			backContext.translate(512, 0)
+			backContext.scale(-1, 1)
+			backContext.drawImage(frontCanvas, 0, 0)
+
+			// Replace with a two-sided wall.
+			group.remove(mesh)
+
+			const frontMaterial = new THREE.MeshLambertMaterial({
+				color: 0xffffff,
+				side: THREE.FrontSide,
+				map: new THREE.CanvasTexture(frontCanvas),
+			})
+			const frontMesh = new THREE.Mesh(wallGeometry, frontMaterial)
+			frontMesh.matrix.copy(mesh.matrix)
+			frontMesh.matrixAutoUpdate = false
+			group.add(frontMesh)
+
+			const backMaterial = new THREE.MeshLambertMaterial({
+				color: 0xffffff,
+				side: THREE.BackSide,
+				map: new THREE.CanvasTexture(backCanvas),
+			})
+			const backMesh = new THREE.Mesh(wallGeometry, backMaterial)
+			backMesh.matrix.copy(mesh.matrix)
+			backMesh.matrixAutoUpdate = false
+			group.add(backMesh)
+		}
 	}
 
 	static readonly MAZE_SIZE = 7

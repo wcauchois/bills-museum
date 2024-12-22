@@ -25,7 +25,7 @@ export class WalkingCameraController implements CameraController {
 		this.camera = args.camera
 		this.rotation = new THREE.Quaternion()
 		this.translation = args.initialPosition.clone()
-		this.phi = THREE.MathUtils.degToRad(90)
+		this.phi = 0
 		this.theta = 0
 		this.headBobActive = false
 		this.headBobTimer = 0

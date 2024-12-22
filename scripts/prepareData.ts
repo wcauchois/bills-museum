@@ -23,7 +23,7 @@ function isPrintable(char: string) {
 }
 
 function isMostlyPrintableString(s: string) {
-	return s.split("").filter(c => isPrintable(c)).length / s.length > 0.7
+	return s.split("").filter(c => isPrintable(c)).length / s.length > 0.9
 }
 
 const inputRows = allInputRows

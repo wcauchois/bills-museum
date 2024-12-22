@@ -71,8 +71,11 @@ export class Game {
 	private cameraController: CameraController
 	private textureLoader: THREE.TextureLoader
 	private entities: Entity[] = []
+	private queryString: string
 
-	constructor() {
+	constructor(args: { queryString: string }) {
+		this.queryString = args.queryString
+
 		this.scene = new THREE.Scene()
 		this.textureLoader = new THREE.TextureLoader()
 
@@ -102,7 +105,10 @@ export class Game {
 			: new WalkingCameraController({
 					camera: this.camera,
 					inputController: this.inputController,
-					height: 1,
+					initialPosition: this.mazeToWorld(
+						Game.MAZE_SIZE + 1,
+						Game.MAZE_SIZE / 2
+					).setY(1),
 			  })
 	}
 
@@ -222,7 +228,7 @@ export class Game {
 		group.scale.y = 3
 		this.scene.add(group)
 
-		worker.getRelevantQuotes("death").then(quotes => {
+		worker.getRelevantQuotes(this.queryString).then(quotes => {
 			for (const [i, mesh] of chooseN(allWallMeshes, 10).entries()) {
 				const quote = quotes[i]
 				const canvas = document.createElement("canvas")

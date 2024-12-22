@@ -42,3 +42,7 @@ export function make2DArray<T>(
 export function choose<T>(arr: T[]): T {
 	return arr[_.random(0, arr.length - 1)]
 }
+
+export function chooseN<T>(arr: T[], n: number): T[] {
+	return _.shuffle(arr).slice(0, n)
+}

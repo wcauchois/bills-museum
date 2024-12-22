@@ -6,21 +6,23 @@ import { Direction2D, DirectionName } from "./Direction2D"
 import { CameraController } from "./camera/CameraController"
 import { FreeCameraController } from "./camera/FreeCameraController"
 import { WalkingCameraController } from "./camera/WalkingCameraController"
-import { choose, make2DArray, unreachable } from "../lib/utils"
+import { choose, chooseN, make2DArray, unreachable } from "../lib/utils"
 import _ from "lodash"
+import { worker } from "../worker/workerClient"
+import { getBrokenLinesForCanvas } from "./gameUtils"
 
-const FREE_CAMERA = true
+const FREE_CAMERA = false
 
 abstract class Entity {
 	update(timeElapsedS: number) {}
 }
 
 type RotatingShapeType = "cube" | "sphere" | "cylinder"
-const allRotatingShapeTypes: RotatingShapeType[] = Object.keys({
+const allRotatingShapeTypes = Object.keys({
 	cube: true,
 	cylinder: true,
 	sphere: true,
-} satisfies Record<RotatingShapeType, true>)
+} satisfies Record<RotatingShapeType, true>) as RotatingShapeType[]
 
 class RotatingShape extends Entity {
 	private mesh: THREE.Mesh
@@ -46,10 +48,9 @@ class RotatingShape extends Entity {
 			unreachable(shapeType)
 		}
 
-		const material = new THREE.MeshBasicMaterial({
+		const material = new THREE.MeshLambertMaterial({
 			color: 0x00ff00,
-			wireframe: true,
-			wireframeLinewidth: 20,
+			// wireframe: true,
 		})
 		this.mesh = new THREE.Mesh(geometry, material)
 		this.mesh.position.copy(args.position)
@@ -156,6 +157,7 @@ export class Game {
 			bumpScale: 50,
 		})
 
+		const allWallMeshes: THREE.Mesh[] = []
 		const makeWall = (x: number, z: number, extraTransform: THREE.Matrix4) => {
 			const mesh = new THREE.Mesh(wallGeometry, wallMaterial)
 			const transform = new THREE.Matrix4()
@@ -164,6 +166,7 @@ export class Game {
 			transform.multiply(new THREE.Matrix4().makeTranslation(0.5, 0.5, 0))
 			mesh.matrix = transform
 			mesh.matrixAutoUpdate = false
+			allWallMeshes.push(mesh)
 			return mesh
 		}
 
@@ -218,9 +221,60 @@ export class Game {
 		group.scale.x = group.scale.z = Game.MAZE_XZ_SCALE
 		group.scale.y = 3
 		this.scene.add(group)
+
+		worker.getRelevantQuotes("death").then(quotes => {
+			for (const [i, mesh] of chooseN(allWallMeshes, 10).entries()) {
+				const quote = quotes[i]
+				const canvas = document.createElement("canvas")
+				canvas.width = 512
+				canvas.height = 512
+				const context = canvas.getContext("2d")!
+				context.fillStyle = "white"
+				context.fillRect(0, 0, 512, 512)
+				context.fillStyle = "black"
+				context.font = "48px monospace"
+				const lines = getBrokenLinesForCanvas(context, quote, 512)
+				for (const [lineNumber, line] of lines.entries()) {
+					context.fillText(line, 10, 10 + 48 * (lineNumber + 1))
+				}
+
+				// Different front/back texture: https://stackoverflow.com/a/17602666
+				const backCanvas = document.createElement("canvas")
+				backCanvas.width = 512
+				backCanvas.height = 512
+				const backContext = backCanvas.getContext("2d")!
+				// Flip image horizontally: https://stackoverflow.com/a/3129152
+				backContext.translate(512, 0)
+				backContext.scale(-1, 1)
+				backContext.drawImage(canvas, 0, 0)
+
+				// Replace with a two-sided wall.
+				group.remove(mesh)
+
+				const frontMaterial = new THREE.MeshLambertMaterial({
+					color: 0xffffff,
+					side: THREE.FrontSide,
+					map: new THREE.CanvasTexture(canvas),
+				})
+				const frontMesh = new THREE.Mesh(wallGeometry, frontMaterial)
+				frontMesh.matrix.copy(mesh.matrix)
+				frontMesh.matrixAutoUpdate = false
+				group.add(frontMesh)
+
+				const backMaterial = new THREE.MeshLambertMaterial({
+					color: 0xffffff,
+					side: THREE.BackSide,
+					map: new THREE.CanvasTexture(backCanvas),
+				})
+				const backMesh = new THREE.Mesh(wallGeometry, backMaterial)
+				backMesh.matrix.copy(mesh.matrix)
+				backMesh.matrixAutoUpdate = false
+				group.add(backMesh)
+			}
+		})
 	}
 
-	static readonly MAZE_SIZE = 10
+	static readonly MAZE_SIZE = 7
 	static readonly MAZE_XZ_SCALE = 5
 	private mazeToWorld(x: number, y: number) {
 		return new THREE.Vector3(x + 0.5, 0, y + 0.5).multiplyScalar(

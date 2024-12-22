@@ -18,9 +18,25 @@ const allInputRows: Array<{ quote: string; author: string }> = inputContents
 console.log("First row:", allInputRows[0])
 console.log(`Loaded ${allInputRows.length} rows`)
 
-const inputRows = allInputRows.filter(
-	row => row.quote.length <= QUOTE_LENGTH_LIMIT && row.quote.length > 10
-)
+function isPrintable(char: string) {
+	return /[\x20-\x7E]/.test(char)
+}
+
+function isMostlyPrintableString(s: string) {
+	return s.split("").filter(c => isPrintable(c)).length / s.length > 0.7
+}
+
+const inputRows = allInputRows
+	.filter(
+		row =>
+			row.quote.length <= QUOTE_LENGTH_LIMIT &&
+			row.quote.length > 10 &&
+			isMostlyPrintableString(row.quote)
+	)
+	.map(row => ({
+		...row,
+		quote: row.quote.replace(/^“/, "").replace(/”$/, ""),
+	}))
 console.log(`Filtered down to ${inputRows.length} rows`)
 
 try {

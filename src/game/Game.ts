@@ -6,8 +6,61 @@ import { Direction2D, DirectionName } from "./Direction2D"
 import { CameraController } from "./camera/CameraController"
 import { FreeCameraController } from "./camera/FreeCameraController"
 import { WalkingCameraController } from "./camera/WalkingCameraController"
+import { choose, make2DArray, unreachable } from "../lib/utils"
+import _ from "lodash"
 
-const FREE_CAMERA = false
+const FREE_CAMERA = true
+
+abstract class Entity {
+	update(timeElapsedS: number) {}
+}
+
+type RotatingShapeType = "cube" | "sphere" | "cylinder"
+const allRotatingShapeTypes: RotatingShapeType[] = Object.keys({
+	cube: true,
+	cylinder: true,
+	sphere: true,
+} satisfies Record<RotatingShapeType, true>)
+
+class RotatingShape extends Entity {
+	private mesh: THREE.Mesh
+
+	constructor(args: {
+		scene: THREE.Scene
+		position: THREE.Vector3
+		shapeType: RotatingShapeType
+	}) {
+		super()
+		const { shapeType } = args
+
+		const size = 1
+		let geometry: THREE.BufferGeometry
+
+		if (shapeType === "cube") {
+			geometry = new THREE.BoxGeometry(size, size)
+		} else if (shapeType === "sphere") {
+			geometry = new THREE.SphereGeometry(size)
+		} else if (shapeType === "cylinder") {
+			geometry = new THREE.CylinderGeometry(size)
+		} else {
+			unreachable(shapeType)
+		}
+
+		const material = new THREE.MeshBasicMaterial({
+			color: 0x00ff00,
+			wireframe: true,
+			wireframeLinewidth: 20,
+		})
+		this.mesh = new THREE.Mesh(geometry, material)
+		this.mesh.position.copy(args.position)
+		args.scene.add(this.mesh)
+	}
+
+	override update(timeElapsedS: number) {
+		this.mesh.rotation.x += 0.8 * timeElapsedS
+		this.mesh.rotation.z += 0.8 * timeElapsedS
+	}
+}
 
 export class Game {
 	private scene: THREE.Scene
@@ -16,6 +69,7 @@ export class Game {
 	private inputController: InputController
 	private cameraController: CameraController
 	private textureLoader: THREE.TextureLoader
+	private entities: Entity[] = []
 
 	constructor() {
 		this.scene = new THREE.Scene()
@@ -81,6 +135,7 @@ export class Game {
 		this.scene.add(sky)
 
 		this.setupMaze()
+		this.setupMazeObjects()
 
 		// Floor
 		const floorGeometry = new THREE.PlaneGeometry(1000, 1000)
@@ -137,7 +192,7 @@ export class Game {
 		// const helper = new THREE.AxesHelper()
 		// this.scene.add(helper)
 
-		const maze = new MazeGenerator(10)
+		const maze = new MazeGenerator(Game.MAZE_SIZE)
 		maze.generate()
 		console.log(maze.grid)
 		console.log(maze.print())
@@ -160,9 +215,41 @@ export class Game {
 			}
 		}
 
-		group.scale.x = group.scale.z = 5
+		group.scale.x = group.scale.z = Game.MAZE_XZ_SCALE
 		group.scale.y = 3
 		this.scene.add(group)
+	}
+
+	static readonly MAZE_SIZE = 10
+	static readonly MAZE_XZ_SCALE = 5
+	private mazeToWorld(x: number, y: number) {
+		return new THREE.Vector3(x + 0.5, 0, y + 0.5).multiplyScalar(
+			Game.MAZE_XZ_SCALE
+		)
+	}
+
+	setupMazeObjects() {
+		const placements: [number, number][] = []
+		for (let i = 0; i < 5; i++) {
+			while (true) {
+				const x = _.random(0, Game.MAZE_SIZE - 1)
+				const y = _.random(0, Game.MAZE_SIZE - 1)
+				if (!placements.some(([px, py]) => px === x && py === y)) {
+					placements.push([x, y])
+					break
+				}
+			}
+		}
+
+		for (const [x, y] of placements) {
+			this.entities.push(
+				new RotatingShape({
+					scene: this.scene,
+					position: this.mazeToWorld(x, y).setY(1.5),
+					shapeType: choose(allRotatingShapeTypes),
+				})
+			)
+		}
 	}
 
 	private lastTime: number | undefined
@@ -176,6 +263,10 @@ export class Game {
 		this.cameraController.update(timeElapsedS)
 
 		this.pointLight.position.copy(this.camera.position)
+
+		for (const entity of this.entities) {
+			entity.update(timeElapsedS)
+		}
 
 		this.renderer.render(this.scene, this.camera)
 	}

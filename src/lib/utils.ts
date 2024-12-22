@@ -1,3 +1,5 @@
+import _ from "lodash"
+
 export type Result<S, F> =
 	| { type: "success"; value: S }
 	| { type: "failure"; error: F }
@@ -27,4 +29,16 @@ export function makeDeferred<T>(): Deferred<T> {
 		resolve: resolve!,
 		reject: reject!,
 	}
+}
+
+export function make2DArray<T>(
+	width: number,
+	height: number,
+	factory: () => T
+): T[][] {
+	return _.range(0, height).map(() => _.range(0, width).map(() => factory()))
+}
+
+export function choose<T>(arr: T[]): T {
+	return arr[_.random(0, arr.length - 1)]
 }

@@ -1,5 +1,6 @@
 import _ from "lodash"
 import { Direction2D } from "./Direction2D"
+import { make2DArray } from "../lib/utils"
 
 class GridEntry {
 	north = false
@@ -29,13 +30,7 @@ export class MazeGenerator {
 
 	constructor(size: number) {
 		this.size = size
-		this.grid = Array(size)
-			.fill(undefined)
-			.map(() =>
-				Array(size)
-					.fill(undefined)
-					.map(() => new GridEntry())
-			)
+		this.grid = make2DArray(size, size, () => new GridEntry())
 	}
 
 	private carvePassagesFrom(cx: number, cy: number) {

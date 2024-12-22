@@ -3,10 +3,11 @@ import "./style.css"
 import { Game } from "./game/Game"
 import { worker } from "./worker/workerClient"
 
-const form = document.querySelector("form")!
+const form = document.getElementById("form")!
+const container = document.getElementById("container")!
 form.addEventListener("submit", e => {
 	e.preventDefault()
-	form.remove()
+	container.remove()
 
 	const textValue = (
 		form.querySelector("input[type='text']")! as HTMLInputElement

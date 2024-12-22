@@ -8,15 +8,34 @@
 		<title>Bill’s Museum</title>
 	</head>
 	<body>
-		<form class="container" id="form">
-			<div>What’s on your mind?</div>
-			<div class="input-container">
-				<input type="text" />
+		<div
+			id="container"
+			class="w-full h-full flex flex-col items-center justify-center"
+		>
+			<div
+				class="w-[650px] min-h-[300px] text-white text-xl text-center border p-3 rounded border-white flex flex-col justify-center"
+			>
+				<form class="flex flex-col gap-3" id="form">
+					<div class="text-2xl font-semibold italic">What’s on your mind?</div>
+					<div>
+						<input
+							type="text"
+							class="text-black p-2 min-w-[500px] rounded outline-none"
+							minlength="3"
+							required
+							placeholder="Enter a few words"
+							autofocus
+						/>
+					</div>
+					<div>
+						<input
+							type="submit"
+							class="border border-white rounded px-4 py-1 cursor-pointer"
+						/>
+					</div>
+				</form>
 			</div>
-			<div>
-				<input type="submit" />
-			</div>
-		</form>
+		</div>
 
 		<div id="app"></div>
 		<script type="module" src="/src/main.ts"></script>

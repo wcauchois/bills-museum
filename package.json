@@ -1,37 +1,38 @@
 {
-  "name": "bills-museum",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
-  },
-  "devDependencies": {
-    "@sqlite.org/sqlite-wasm": "^3.47.2-build1",
-    "@types/better-sqlite3": "^7.6.12",
-    "@types/fs-extra": "^11.0.4",
-    "@types/lodash": "^4.17.13",
-    "@types/murmurhash-js": "^1.0.6",
-    "@types/three": "^0.171.0",
-    "better-sqlite3": "^11.7.0",
-    "csv-parse": "^5.6.0",
-    "fs-extra": "^11.2.0",
-    "inquirer": "^12.2.0",
-    "sqlite-vec": "^0.1.6",
-    "tailwindcss": "^3.4.17",
-    "tsx": "^4.19.2",
-    "typescript": "~5.6.2",
-    "vite": "^6.0.3"
-  },
-  "dependencies": {
-    "@huggingface/transformers": "^3.2.1",
-    "comlink": "^4.4.2",
-    "lodash": "^4.17.21",
-    "murmurhash-js": "^1.0.0",
-    "nanoid": "^5.0.9",
-    "sqlite-vec-wasm-demo": "^0.1.6",
-    "three": "^0.171.0"
-  }
+	"name": "bills-museum",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc && vite build",
+		"preview": "vite preview",
+		"tailwind-watch": "tailwindcss -i ./src/style.in.css -o ./src/style.css --watch"
+	},
+	"devDependencies": {
+		"@sqlite.org/sqlite-wasm": "^3.47.2-build1",
+		"@types/better-sqlite3": "^7.6.12",
+		"@types/fs-extra": "^11.0.4",
+		"@types/lodash": "^4.17.13",
+		"@types/murmurhash-js": "^1.0.6",
+		"@types/three": "^0.171.0",
+		"better-sqlite3": "^11.7.0",
+		"csv-parse": "^5.6.0",
+		"fs-extra": "^11.2.0",
+		"inquirer": "^12.2.0",
+		"sqlite-vec": "^0.1.6",
+		"tailwindcss": "^3.4.17",
+		"tsx": "^4.19.2",
+		"typescript": "~5.6.2",
+		"vite": "^6.0.3"
+	},
+	"dependencies": {
+		"@huggingface/transformers": "^3.2.1",
+		"comlink": "^4.4.2",
+		"lodash": "^4.17.21",
+		"murmurhash-js": "^1.0.0",
+		"nanoid": "^5.0.9",
+		"sqlite-vec-wasm-demo": "^0.1.6",
+		"three": "^0.171.0"
+	}
 }

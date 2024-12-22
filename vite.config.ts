@@ -5,6 +5,7 @@ export default defineConfig({
 		// https://github.com/vitejs/vite/issues/13314#issuecomment-1560745780
 		exclude: ["sqlite-vec-wasm-demo"],
 	},
+	assetsInclude: ["src/**/*.wasm"],
 	plugins: [
 		{
 			name: "isolation",

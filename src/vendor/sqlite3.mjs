@@ -16982,7 +16982,7 @@ const installOpfsVfs = function callee(options){
   return thePromise;
 }/*installOpfsVfs()*/;
 installOpfsVfs.defaultProxyUri =
-  "sqlite3-opfs-async-proxy.js";
+  "/sqlite3-opfs-async-proxy.js";
 globalThis.sqlite3ApiBootstrap.initializersAsync.push(async (sqlite3)=>{
   try{
     let proxyJs = installOpfsVfs.defaultProxyUri;

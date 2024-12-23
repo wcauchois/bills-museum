@@ -167,7 +167,7 @@ Module[xNameOfInstantiateWasm] = function callee(imports,onSuccess){
   why Emscripten hard-codes the name of the wasm file into their glue
   scripts.
 */
-Module[xNameOfInstantiateWasm].uri = 'sqlite3.wasm';
+Module[xNameOfInstantiateWasm].uri = '/sqlite3.wasm';
 /* END FILE: api/pre-js.js, noting that the build process may add a
    line after this one to change the above .uri to a build-specific
    one. */
@@ -693,14 +693,15 @@ function createExportWrapper(name, nargs) {
 // end include: runtime_exceptions.js
 function findWasmBinary() {
   if (Module['locateFile']) {
-    var f = 'sqlite3.wasm';
+    var f = '/sqlite3.wasm';
     if (!isDataURI(f)) {
       return locateFile(f);
     }
     return f;
   }
   // Use bundler-friendly `new URL(..., import.meta.url)` pattern; works in browsers too.
-  return new URL('sqlite3.wasm', import.meta.url).href;
+  //return new URL('sqlite3.wasm', import.meta.url).href;
+  return "/sqlite3.wasm";
 }
 
 var wasmBinaryFile;

@@ -41,7 +41,6 @@ export class RotatingShape extends Entity {
 
 		const material = new THREE.MeshLambertMaterial({
 			color: 0x00ff00,
-			// wireframe: true,
 		})
 		this.mesh = new THREE.Mesh(geometry, material)
 		this.mesh.position.copy(args.position)
@@ -61,7 +60,5 @@ export class RotatingShape extends Entity {
 		} else {
 			this.mesh.rotateOnAxis(this.rotationAxis, 0.8 * timeElapsedS)
 		}
-		// this.mesh.rotation.x += 0.8 * timeElapsedS
-		// this.mesh.rotation.z += 0.8 * timeElapsedS
 	}
 }

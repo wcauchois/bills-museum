@@ -2,6 +2,7 @@ import * as THREE from "three"
 import { clamp } from "lodash"
 import { InputController } from "../InputController"
 import { CameraController } from "./CameraController"
+import _ from "lodash"
 
 /**
  * https://www.youtube.com/watch?v=oqKzxPMLWxo
@@ -15,6 +16,9 @@ export class WalkingCameraController implements CameraController {
 	private input: InputController
 	private headBobActive: boolean
 	private headBobTimer: number
+	private isJumping: boolean
+	private velocityY: number
+	private floorY: number
 
 	constructor(args: {
 		inputController: InputController
@@ -25,16 +29,20 @@ export class WalkingCameraController implements CameraController {
 		this.camera = args.camera
 		this.rotation = new THREE.Quaternion()
 		this.translation = args.initialPosition.clone()
+		this.floorY = args.initialPosition.y
 		this.phi = 0
 		this.theta = 0
 		this.headBobActive = false
 		this.headBobTimer = 0
+		this.isJumping = false
+		this.velocityY = 0
 	}
 
 	update(timeElapsedS: number) {
 		this.updateRotation()
 		this.updateTranslation(timeElapsedS)
 		this.updateHeadBob(timeElapsedS)
+		this.updateJump()
 		this.updateCamera()
 	}
 
@@ -42,6 +50,27 @@ export class WalkingCameraController implements CameraController {
 		this.camera.quaternion.copy(this.rotation)
 		this.camera.position.copy(this.translation)
 		this.camera.position.y += Math.sin(this.headBobTimer * 10) * 0.2
+	}
+
+	private simulateJumpPhysicsThrottled = _.throttle(() => {
+		this.translation.y += this.velocityY
+		this.velocityY -= 0.02
+	}, 16)
+
+	private updateJump() {
+		if (!this.isJumping) {
+			if (this.input.keys[" "]) {
+				this.isJumping = true
+				this.velocityY = 0.25
+			}
+		} else {
+			this.simulateJumpPhysicsThrottled()
+			if (this.translation.y < this.floorY) {
+				this.translation.y = this.floorY
+				this.isJumping = false
+				this.velocityY = 0
+			}
+		}
 	}
 
 	private updateHeadBob(timeElapsedS: number) {

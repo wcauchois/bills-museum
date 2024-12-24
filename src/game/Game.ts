@@ -387,6 +387,8 @@ export class Game {
 			.sub(lastCameraPosition)
 			.normalize()
 			.multiplyScalar(stride)
+		// Test several positions along the line from lastPos -> currentPos to
+		// avoid tunneling (https://rapier.rs/docs/user_guides/javascript/rigid_bodies#continuous-collision-detection)
 		const testPositions: THREE.Vector3[] = []
 		for (
 			let position = lastCameraPosition.clone();

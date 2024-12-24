@@ -12,6 +12,9 @@ export const allRotatingShapeTypes = Object.keys({
 
 export class RotatingShape extends Entity {
 	private mesh: THREE.Mesh
+	private rotationAxis: THREE.Vector3
+	private initialPosition: THREE.Vector3
+	private shapeType: RotatingShapeType
 
 	constructor(args: {
 		scene: THREE.Scene
@@ -20,6 +23,8 @@ export class RotatingShape extends Entity {
 	}) {
 		super()
 		const { shapeType } = args
+		this.initialPosition = args.position
+		this.shapeType = args.shapeType
 
 		const size = 1
 		let geometry: THREE.BufferGeometry
@@ -41,10 +46,22 @@ export class RotatingShape extends Entity {
 		this.mesh = new THREE.Mesh(geometry, material)
 		this.mesh.position.copy(args.position)
 		args.scene.add(this.mesh)
+
+		this.rotationAxis = new THREE.Vector3().randomDirection()
 	}
 
+	private absoluteTime = 0
 	override update(timeElapsedS: number) {
-		this.mesh.rotation.x += 0.8 * timeElapsedS
-		this.mesh.rotation.z += 0.8 * timeElapsedS
+		this.absoluteTime += timeElapsedS
+
+		if (this.shapeType === "sphere") {
+			// Spheres bob instead of rotating.
+			const factor = Math.sin(this.absoluteTime * 3) * 0.15
+			this.mesh.position.y = this.initialPosition.y + factor
+		} else {
+			this.mesh.rotateOnAxis(this.rotationAxis, 0.8 * timeElapsedS)
+		}
+		// this.mesh.rotation.x += 0.8 * timeElapsedS
+		// this.mesh.rotation.z += 0.8 * timeElapsedS
 	}
 }

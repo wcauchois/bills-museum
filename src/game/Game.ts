@@ -72,12 +72,14 @@ export class Game {
 	private textureLoader: THREE.TextureLoader
 	private entities: Entity[] = []
 	private queryString: string
+	private wallGroup: THREE.Group
 
 	constructor(args: { queryString: string }) {
 		this.queryString = args.queryString
 
 		this.scene = new THREE.Scene()
 		this.textureLoader = new THREE.TextureLoader()
+		this.wallGroup = new THREE.Group()
 
 		this.camera = new THREE.PerspectiveCamera(
 			75,
@@ -126,7 +128,7 @@ export class Game {
 		const ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
 		this.scene.add(ambientLight)
 
-		this.pointLight = new THREE.PointLight(0xffffff, 10)
+		this.pointLight = new THREE.PointLight(0xffffff, 15)
 		this.scene.add(this.pointLight)
 
 		const sky = new Sky()
@@ -206,7 +208,7 @@ export class Game {
 		console.log(maze.grid)
 		console.log(maze.print())
 
-		const group = new THREE.Group()
+		const group = this.wallGroup
 
 		for (let x = 0; x < maze.width; x++) {
 			group.add(makeNorthWall(x, 0))
@@ -343,6 +345,122 @@ export class Game {
 		}
 	}
 
+	private getTranslationForCollision(args: {
+		cameraPosition: THREE.Vector3
+		cameraBox: THREE.Box3
+		wallBox: THREE.Box3
+	}) {
+		const { cameraPosition, cameraBox, wallBox } = args
+
+		const intersectBox = new THREE.Box3().copy(cameraBox).intersect(wallBox)
+		const overlapX = intersectBox.max.x - intersectBox.min.x // X overlap
+		const overlapZ = intersectBox.max.z - intersectBox.min.z // Z overlap
+		const translation = new THREE.Vector3()
+
+		const wallCenter = wallBox.getCenter(new THREE.Vector3())
+		// Check which axis to resolve
+		if (overlapX < overlapZ) {
+			// Resolve collision along X-axis
+			translation.x = cameraPosition.x > wallCenter.x ? overlapX : -overlapX
+		} else {
+			// Resolve collision along Z-axis
+			translation.z = cameraPosition.z > wallCenter.z ? overlapZ : -overlapZ
+		}
+
+		return translation
+	}
+
+	private lastCameraCollidePosition: THREE.Vector3 | undefined
+
+	private collideCamera() {
+		const cameraPosition = this.camera.position
+		const lastCameraPosition = this.lastCameraCollidePosition
+		this.lastCameraCollidePosition = cameraPosition.clone()
+
+		if (!lastCameraPosition) {
+			return
+		}
+
+		const stride = 0.02
+		const incrementVector = cameraPosition
+			.clone()
+			.sub(lastCameraPosition)
+			.normalize()
+			.multiplyScalar(stride)
+		const testPositions: THREE.Vector3[] = []
+		for (
+			let position = lastCameraPosition.clone();
+			position.distanceTo(cameraPosition) > stride;
+			position.add(incrementVector)
+		) {
+			testPositions.push(position.clone())
+		}
+		testPositions.push(cameraPosition.clone())
+
+		for (const testPosition of testPositions) {
+			if (this.collideCameraAt(testPosition)) {
+				break
+			}
+		}
+	}
+
+	private collideCameraAt(cameraPosition: THREE.Vector3) {
+		const cameraController = this.cameraController
+		if (!(cameraController instanceof WalkingCameraController)) {
+			return
+		}
+
+		const playerSize = 0.3
+		const cameraBox = new THREE.Box3(
+			cameraPosition
+				.clone()
+				.add(new THREE.Vector3(-playerSize, -playerSize, -playerSize)),
+			cameraPosition
+				.clone()
+				.add(new THREE.Vector3(playerSize, playerSize, playerSize))
+		)
+
+		let didCollide = false
+		for (const wall of this.wallGroup.children) {
+			if (
+				!(wall instanceof THREE.Mesh) ||
+				!(wall.geometry instanceof THREE.PlaneGeometry)
+			) {
+				throw new Error("Unepxected wall mesh/geometry")
+			}
+
+			wall.geometry.computeBoundingBox()
+			const wallBox = new THREE.Box3()
+				.copy(wall.geometry.boundingBox!)
+				.applyMatrix4(wall.matrixWorld)
+
+			const orientationBool = Math.abs(wallBox.min.x - wallBox.max.x) < 1
+			const expandAmount = 0.1
+			if (orientationBool) {
+				wallBox.expandByVector(new THREE.Vector3(expandAmount, 0, 0))
+			} else {
+				wallBox.expandByVector(new THREE.Vector3(0, 0, expandAmount))
+			}
+
+			if (wallBox.intersectsBox(cameraBox)) {
+				if (!didCollide) {
+					// Restore to position at time of collision.
+					cameraController.translation
+						.setX(cameraPosition.x)
+						.setZ(cameraPosition.z)
+					didCollide = true
+				}
+				const translation = this.getTranslationForCollision({
+					cameraPosition,
+					cameraBox,
+					wallBox,
+				})
+				cameraController.translation.add(translation)
+			}
+		}
+		return didCollide
+	}
+
 	private lastTime: number | undefined
 	private animate = (time: number) => {
 		let timeElapsedS = 0
@@ -352,8 +470,9 @@ export class Game {
 		this.lastTime = time
 
 		this.cameraController.update(timeElapsedS)
+		this.collideCamera()
 
-		this.pointLight.position.copy(this.camera.position)
+		this.pointLight.position.copy(this.camera.position).setY(5)
 
 		for (const entity of this.entities) {
 			entity.update(timeElapsedS)

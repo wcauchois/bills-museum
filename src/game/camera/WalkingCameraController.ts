@@ -9,7 +9,7 @@ import { CameraController } from "./CameraController"
 export class WalkingCameraController implements CameraController {
 	private camera: THREE.Camera
 	private rotation: THREE.Quaternion
-	private translation: THREE.Vector3
+	public translation: THREE.Vector3
 	private phi: number
 	private theta: number
 	private input: InputController

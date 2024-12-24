@@ -12,6 +12,7 @@ import { getBrokenLinesForCanvas } from "./gameUtils"
 import { Entity } from "./Entity"
 import { allRotatingShapeTypes, RotatingShape } from "./RotatingShape"
 import { Direction2D } from "./Direction2D"
+import { scoreAtom, store } from "../ui/state"
 
 const FREE_CAMERA = false
 
@@ -445,7 +446,7 @@ export class Game {
 			const intersects = entity.getBoundingBox().intersectsBox(cameraBox)
 			if (intersects) {
 				this.removeEntity(entity)
-				// TODO: Score
+				store.set(scoreAtom, score => score + 1)
 			}
 		}
 	}

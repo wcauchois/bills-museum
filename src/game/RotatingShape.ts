@@ -46,7 +46,15 @@ export class RotatingShape extends Entity {
 		this.mesh.position.copy(args.position)
 		args.scene.add(this.mesh)
 
+		this.mesh.geometry.computeBoundingBox()
+
 		this.rotationAxis = new THREE.Vector3().randomDirection()
+	}
+
+	getBoundingBox() {
+		return new THREE.Box3()
+			.copy(this.mesh.geometry.boundingBox!)
+			.applyMatrix4(this.mesh.matrixWorld)
 	}
 
 	private absoluteTime = 0
@@ -60,5 +68,9 @@ export class RotatingShape extends Entity {
 		} else {
 			this.mesh.rotateOnAxis(this.rotationAxis, 0.8 * timeElapsedS)
 		}
+	}
+
+	onRemove() {
+		this.mesh.removeFromParent()
 	}
 }

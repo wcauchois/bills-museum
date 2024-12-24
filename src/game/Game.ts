@@ -365,14 +365,10 @@ export class Game {
 		}
 	}
 
-	private collideCameraAt(cameraPosition: THREE.Vector3) {
-		const cameraController = this.cameraController
-		if (!(cameraController instanceof WalkingCameraController)) {
-			return
-		}
-
+	private getCameraBoundingBox(cameraPosition?: THREE.Vector3) {
+		cameraPosition ??= this.camera.position
 		const playerSize = 0.3
-		const cameraBox = new THREE.Box3(
+		return new THREE.Box3(
 			cameraPosition
 				.clone()
 				.add(new THREE.Vector3(-playerSize, -playerSize, -playerSize)),
@@ -380,6 +376,15 @@ export class Game {
 				.clone()
 				.add(new THREE.Vector3(playerSize, playerSize, playerSize))
 		)
+	}
+
+	private collideCameraAt(cameraPosition: THREE.Vector3) {
+		const cameraController = this.cameraController
+		if (!(cameraController instanceof WalkingCameraController)) {
+			return
+		}
+
+		const cameraBox = this.getCameraBoundingBox(cameraPosition)
 
 		let didCollide = false
 		for (const wall of this.wallGroup.children) {
@@ -422,6 +427,26 @@ export class Game {
 		return didCollide
 	}
 
+	private removeEntity(entity: Entity) {
+		this.entities = this.entities.filter(e => e !== entity)
+		entity.onRemove()
+	}
+
+	private collideObjects() {
+		const cameraBox = this.getCameraBoundingBox()
+		for (const entity of this.entities) {
+			if (!(entity instanceof RotatingShape)) {
+				continue
+			}
+
+			const intersects = entity.getBoundingBox().intersectsBox(cameraBox)
+			if (intersects) {
+				this.removeEntity(entity)
+				// TODO: Score
+			}
+		}
+	}
+
 	private lastTime: number | undefined
 	private animate = (time: number) => {
 		let timeElapsedS = 0
@@ -432,6 +457,7 @@ export class Game {
 
 		this.cameraController.update(timeElapsedS)
 		this.collideCamera()
+		this.collideObjects()
 
 		this.pointLight.position.copy(this.camera.position).setY(5)
 

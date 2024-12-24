@@ -4,7 +4,7 @@ import Database from "better-sqlite3"
 import { pipeline } from "@huggingface/transformers"
 import _ from "lodash"
 
-const inputFileName = "data/quotes.jsonl"
+const inputFileName = "data/quotes-clean.jsonl"
 const outputDatabaseName = "public/quotes.db"
 
 const QUOTE_LENGTH_LIMIT = 300

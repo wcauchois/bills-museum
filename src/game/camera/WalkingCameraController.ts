@@ -92,7 +92,8 @@ export class WalkingCameraController implements CameraController {
 
 	private updateTranslation(timeElapsedS: number) {
 		const forwardVelocity =
-			(this.input.keys["w"] ? 1 : 0) + (this.input.keys["s"] ? -1 : 0)
+			(this.input.keys["w"] || this.input.keys["ArrowUp"] ? 1 : 0) +
+			(this.input.keys["s"] || this.input.keys["ArrowDown"] ? -1 : 0)
 		const strafeVelocity =
 			(this.input.keys["a"] ? 1 : 0) + (this.input.keys["d"] ? -1 : 0)
 
@@ -109,6 +110,11 @@ export class WalkingCameraController implements CameraController {
 
 		this.translation.add(forward)
 		this.translation.add(left)
+
+		const angularVelocity =
+			(this.input.keys["ArrowLeft"] ? 1 : 0) +
+			(this.input.keys["ArrowRight"] ? -1 : 0)
+		this.phi += angularVelocity * timeElapsedS * 5
 
 		if (forwardVelocity !== 0 || strafeVelocity !== 0) {
 			this.headBobActive = true

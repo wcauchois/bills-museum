@@ -6,6 +6,16 @@ body {
   height: 100%;
 }
 
+#app {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background-color: transparent;
+  pointer-events: none;
+}
+
 *, ::before, ::after {
   --tw-border-spacing-x: 0;
   --tw-border-spacing-y: 0;
@@ -594,6 +604,10 @@ video {
   .container {
     max-width: 1536px;
   }
+}
+
+.pointer-events-auto {
+  pointer-events: auto;
 }
 
 .flex {

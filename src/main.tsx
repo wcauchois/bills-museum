@@ -2,7 +2,10 @@ import "./style.css"
 
 import { Game } from "./game/Game"
 import { worker } from "./worker/workerClient"
+import { createRoot } from "react-dom/client"
+import { App } from "./ui/App"
 
+/*
 const form = document.getElementById("form")!
 const container = document.getElementById("container")!
 form.addEventListener("submit", e => {
@@ -19,3 +22,6 @@ form.addEventListener("submit", e => {
 	;(window as any).__game = game
 	game.start()
 })
+	*/
+
+createRoot(document.getElementById("app")!).render(<App />)

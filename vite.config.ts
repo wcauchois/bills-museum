@@ -1,4 +1,5 @@
 import { defineConfig } from "vite"
+import react from "@vitejs/plugin-react"
 
 export default defineConfig({
 	optimizeDeps: {
@@ -6,6 +7,7 @@ export default defineConfig({
 		exclude: ["sqlite-vec-wasm-demo"],
 	},
 	plugins: [
+		react(),
 		{
 			name: "isolation",
 			configureServer(server) {

@@ -9,9 +9,9 @@ export class Direction2D {
 		public y: number
 	) {}
 
-	static N = new Direction2D("north", 0, 1)
+	static N = new Direction2D("north", 0, -1)
 	static E = new Direction2D("east", 1, 0)
-	static S = new Direction2D("south", 0, -1)
+	static S = new Direction2D("south", 0, 1)
 	static W = new Direction2D("west", -1, 0)
 
 	get opposite() {

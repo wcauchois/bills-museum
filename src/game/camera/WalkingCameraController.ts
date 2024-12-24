@@ -24,13 +24,14 @@ export class WalkingCameraController implements CameraController {
 		inputController: InputController
 		camera: THREE.Camera
 		initialPosition: THREE.Vector3
+		initialYRotation: number
 	}) {
 		this.input = args.inputController
 		this.camera = args.camera
 		this.rotation = new THREE.Quaternion()
 		this.translation = args.initialPosition.clone()
 		this.floorY = args.initialPosition.y
-		this.phi = 0
+		this.phi = args.initialYRotation
 		this.theta = 0
 		this.headBobActive = false
 		this.headBobTimer = 0

@@ -33,6 +33,15 @@ export class MazeGenerator {
 		this.grid = make2DArray(size, size, () => new GridEntry())
 	}
 
+	private isOutsideEdge(x: number, y: number, direction: Direction2D) {
+		return (
+			(x === 0 && direction.name === "west") ||
+			(x === this.width - 1 && direction.name === "east") ||
+			(y === 0 && direction.name === "north") ||
+			(y === this.height - 1 && direction.name === "south")
+		)
+	}
+
 	private carvePassagesFrom(cx: number, cy: number) {
 		const directions = _.shuffle(Direction2D.ALL)
 		for (const direction of directions) {
@@ -40,14 +49,18 @@ export class MazeGenerator {
 			const ny = cy + direction.y
 			if (
 				ny >= 0 &&
-				ny < this.size &&
+				ny < this.height &&
 				nx >= 0 &&
 				nx < this.grid[ny].length &&
 				this.grid[ny][nx].untouched
 			) {
 				// Cell is valid
-				this.grid[cy][cx][direction.name] = true
-				this.grid[ny][nx][direction.opposite.name] = true
+				if (!this.isOutsideEdge(cx, cy, direction)) {
+					this.grid[cy][cx][direction.name] = true
+				}
+				if (!this.isOutsideEdge(nx, ny, direction.opposite)) {
+					this.grid[ny][nx][direction.opposite.name] = true
+				}
 				this.carvePassagesFrom(nx, ny)
 			}
 		}

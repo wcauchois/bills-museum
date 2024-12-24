@@ -11,6 +11,7 @@ import { worker } from "../worker/workerClient"
 import { getBrokenLinesForCanvas } from "./gameUtils"
 import { Entity } from "./Entity"
 import { allRotatingShapeTypes, RotatingShape } from "./RotatingShape"
+import { Direction2D } from "./Direction2D"
 
 const FREE_CAMERA = false
 
@@ -24,6 +25,7 @@ export class Game {
 	private entities: Entity[] = []
 	private queryString: string
 	private wallGroup: THREE.Group
+	private maze: MazeGenerator
 
 	constructor(args: { queryString: string }) {
 		this.queryString = args.queryString
@@ -31,6 +33,7 @@ export class Game {
 		this.scene = new THREE.Scene()
 		this.textureLoader = new THREE.TextureLoader()
 		this.wallGroup = new THREE.Group()
+		this.maze = new MazeGenerator(Game.MAZE_SIZE)
 
 		this.camera = new THREE.PerspectiveCamera(
 			75,
@@ -58,10 +61,15 @@ export class Game {
 			: new WalkingCameraController({
 					camera: this.camera,
 					inputController: this.inputController,
-					initialPosition: this.mazeToWorld(
-						Game.MAZE_SIZE / 2,
-						Game.MAZE_SIZE / 2
-					).setY(1),
+					initialPosition: this.mazeToWorld(0, 0).setY(1),
+					// Choose a rotation such that they're not facing the wall.
+					initialYRotation: THREE.MathUtils.degToRad(
+						this.maze.grid[0][0].east
+							? 270
+							: this.maze.grid[0][0].south
+							? 180
+							: 90
+					),
 			  })
 	}
 
@@ -154,7 +162,7 @@ export class Game {
 		// const helper = new THREE.AxesHelper()
 		// this.scene.add(helper)
 
-		const maze = new MazeGenerator(Game.MAZE_SIZE)
+		const maze = this.maze
 		maze.generate()
 		console.log(maze.grid)
 		console.log(maze.print())

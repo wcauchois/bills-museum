@@ -79,17 +79,7 @@ export class Game {
 
 	private pointLight!: THREE.PointLight
 
-	private setupObjects() {
-		// const light = new THREE.DirectionalLight(0xd5deff)
-		// light.position.x = -50
-		// light.position.y = 50
-		// light.position.z = 25
-		const ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
-		this.scene.add(ambientLight)
-
-		this.pointLight = new THREE.PointLight(0xffffff, 15)
-		this.scene.add(this.pointLight)
-
+	private setupSkyBox() {
 		const sky = new Sky()
 		sky.scale.setScalar(450000)
 		const phi = THREE.MathUtils.degToRad(90)
@@ -101,7 +91,20 @@ export class Game {
 		)
 		sky.material.uniforms.sunPosition.value = sunPosition
 		this.scene.add(sky)
+	}
 
+	private setupObjects() {
+		// const light = new THREE.DirectionalLight(0xd5deff)
+		// light.position.x = -50
+		// light.position.y = 50
+		// light.position.z = 25
+		const ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
+		this.scene.add(ambientLight)
+
+		this.pointLight = new THREE.PointLight(0xffffff, 15)
+		this.scene.add(this.pointLight)
+
+		this.setupSkyBox()
 		this.setupMaze()
 		this.setupMazeObjects()
 

@@ -230,7 +230,10 @@ export class Game {
 		const { allWallMeshes, group, wallGeometry } = args
 
 		// https://www.1001fonts.com/shockwave-font.html
-		const font = new FontFace("Shockwave", `url("/Shockwave.woff")`)
+		const font = new FontFace(
+			"Jimmy Collins Demo Version",
+			`url("/Jimmy Collins Demo Version.otf")`
+		)
 		document.fonts.add(font)
 		font.load()
 
@@ -253,7 +256,7 @@ export class Game {
 			frontContext.fillRect(0, 0, 512, 512)
 			frontContext.fillStyle = this.isNightMode ? "white" : "black"
 			const fontSize = 48
-			frontContext.font = `${fontSize}px 'Shockwave'`
+			frontContext.font = `${fontSize}px 'Jimmy Collins Demo Version'`
 
 			const inlineMargin = 10
 			const lines = getBrokenLinesForCanvas(

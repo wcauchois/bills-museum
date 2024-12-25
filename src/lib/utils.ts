@@ -46,3 +46,7 @@ export function choose<T>(arr: T[]): T {
 export function chooseN<T>(arr: T[], n: number): T[] {
 	return _.shuffle(arr).slice(0, n)
 }
+
+export function hasQueryParam(name: string): boolean {
+	return new URL(window.location.href).searchParams.has(name)
+}

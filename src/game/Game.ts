@@ -12,7 +12,7 @@ import { getBrokenLinesForCanvas } from "./gameUtils"
 import { Entity } from "./Entity"
 import { allRotatingShapeTypes, RotatingShape } from "./RotatingShape"
 import { Direction2D } from "./Direction2D"
-import { scoreAtom, store } from "../ui/state"
+import { nightModeAtom, scoreAtom, store } from "../ui/state"
 
 const FREE_CAMERA = false
 
@@ -80,18 +80,44 @@ export class Game {
 
 	private pointLight!: THREE.PointLight
 
-	private setupSkyBox() {
-		const sky = new Sky()
-		sky.scale.setScalar(450000)
-		const phi = THREE.MathUtils.degToRad(90)
-		const theta = THREE.MathUtils.degToRad(180)
-		const sunPosition = new THREE.Vector3().setFromSphericalCoords(
-			1,
-			phi,
-			theta
-		)
-		sky.material.uniforms.sunPosition.value = sunPosition
-		this.scene.add(sky)
+	get isNightMode() {
+		return store.get(nightModeAtom)
+	}
+
+	get wallColor() {
+		return this.isNightMode ? 0x9e2fa8 : 0xffffff
+	}
+
+	private setupSky() {
+		if (this.isNightMode) {
+			// https://opengameart.org/content/space-skybox-1
+			// https://codinhood.com/post/create-skybox-with-threejs/
+			const geometry = new THREE.BoxGeometry(1000, 1000, 1000)
+			const sides = ["ft", "bk", "up", "dn", "rt", "lf"]
+			const materialArray = sides.map(side => {
+				const fileName = `/night_skybox/space_${side}.png`
+				const texture = this.textureLoader.load(fileName)
+				return new THREE.MeshBasicMaterial({
+					map: texture,
+					// side: THREE.BackSide,
+					side: THREE.DoubleSide,
+				})
+			})
+			const skybox = new THREE.Mesh(geometry, materialArray)
+			this.scene.add(skybox)
+		} else {
+			const sky = new Sky()
+			sky.scale.setScalar(450000)
+			const phi = THREE.MathUtils.degToRad(90)
+			const theta = THREE.MathUtils.degToRad(180)
+			const sunPosition = new THREE.Vector3().setFromSphericalCoords(
+				1,
+				phi,
+				theta
+			)
+			sky.material.uniforms.sunPosition.value = sunPosition
+			this.scene.add(sky)
+		}
 	}
 
 	private setupObjects() {
@@ -105,14 +131,14 @@ export class Game {
 		this.pointLight = new THREE.PointLight(0xffffff, 15)
 		this.scene.add(this.pointLight)
 
-		this.setupSkyBox()
+		this.setupSky()
 		this.setupMaze()
 		this.setupMazeObjects()
 
 		// Floor
 		const floorGeometry = new THREE.PlaneGeometry(1000, 1000)
 		const floorMaterial = new THREE.MeshLambertMaterial({
-			color: 0xaaaaaa,
+			color: this.isNightMode ? this.wallColor : 0xaaaaaa,
 			side: THREE.DoubleSide,
 		})
 		const floorMesh = new THREE.Mesh(floorGeometry, floorMaterial)
@@ -123,7 +149,7 @@ export class Game {
 	setupMaze() {
 		const wallGeometry = new THREE.PlaneGeometry(1, 1)
 		const wallMaterial = new THREE.MeshLambertMaterial({
-			color: 0xffffff,
+			color: this.wallColor,
 			side: THREE.DoubleSide,
 			bumpScale: 50,
 		})
@@ -217,9 +243,15 @@ export class Game {
 			frontCanvas.width = 512
 			frontCanvas.height = 512
 			const frontContext = frontCanvas.getContext("2d")!
-			frontContext.fillStyle = "white"
+			frontContext.fillStyle = this.isNightMode
+				? "#" +
+				  new THREE.Color()
+						.setHex(this.wallColor)
+						.convertSRGBToLinear()
+						.getHexString()
+				: "white"
 			frontContext.fillRect(0, 0, 512, 512)
-			frontContext.fillStyle = "black"
+			frontContext.fillStyle = this.isNightMode ? "white" : "black"
 			const fontSize = 48
 			frontContext.font = `${fontSize}px 'Shockwave'`
 

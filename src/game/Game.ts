@@ -12,7 +12,7 @@ import { getBrokenLinesForCanvas } from "./gameUtils"
 import { Entity } from "./Entity"
 import { allRotatingShapeTypes, RotatingShape } from "./RotatingShape"
 import { Direction2D } from "./Direction2D"
-import { nightModeAtom, scoreAtom, store } from "../ui/state"
+import { gameStateAtom, nightModeAtom, scoreAtom, store } from "../ui/state"
 
 const FREE_CAMERA = false
 
@@ -313,6 +313,7 @@ export class Game {
 
 	static readonly MAZE_SIZE = 7
 	static readonly MAZE_XZ_SCALE = 5
+	static readonly NUM_MAZE_OBJECTS = 5
 	private mazeToWorld(x: number, y: number) {
 		return new THREE.Vector3(x + 0.5, 0, y + 0.5).multiplyScalar(
 			Game.MAZE_XZ_SCALE
@@ -321,7 +322,7 @@ export class Game {
 
 	setupMazeObjects() {
 		const placements: [number, number][] = []
-		for (let i = 0; i < 5; i++) {
+		for (let i = 0; i < Game.NUM_MAZE_OBJECTS; i++) {
 			while (true) {
 				const x = _.random(0, Game.MAZE_SIZE - 1)
 				const y = _.random(0, Game.MAZE_SIZE - 1)
@@ -471,6 +472,21 @@ export class Game {
 		entity.onRemove()
 	}
 
+	private stopRendering() {
+		this.renderer.setAnimationLoop(null)
+		this.renderer.domElement.remove()
+		this.renderer.dispose()
+	}
+
+	private maybeTriggerEnd() {
+		const currentScore = store.get(scoreAtom)
+		if (currentScore === Game.NUM_MAZE_OBJECTS) {
+			// Caught em all.
+			store.set(gameStateAtom, () => "over")
+			this.stopRendering()
+		}
+	}
+
 	private collideObjects() {
 		const cameraBox = this.getCameraBoundingBox()
 		for (const entity of this.entities) {
@@ -482,6 +498,7 @@ export class Game {
 			if (intersects) {
 				this.removeEntity(entity)
 				store.set(scoreAtom, score => score + 1)
+				this.maybeTriggerEnd()
 			}
 		}
 	}

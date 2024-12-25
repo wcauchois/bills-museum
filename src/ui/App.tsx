@@ -1,7 +1,19 @@
 import { useState } from "react"
 import { Game } from "../game/Game"
 import { Provider, useAtomValue } from "jotai"
-import { scoreAtom, store } from "./state"
+import { nightModeAtom, scoreAtom, store } from "./state"
+import { pipeline } from "@huggingface/transformers"
+import clsx from "clsx"
+
+const sentimentAnalysisPipeline = pipeline("sentiment-analysis")
+
+async function setNightMode(queryString: string) {
+	const pipe = await sentimentAnalysisPipeline
+	const result = await pipe(queryString)
+	console.log("Sentiment analysis result:", result)
+	const isNegative = (result as any)[0].label === "NEGATIVE"
+	store.set(nightModeAtom, isNegative)
+}
 
 function SplashScreen(props: { onNext: () => void }) {
 	const [queryString, setQueryString] = useState("")
@@ -12,9 +24,11 @@ function SplashScreen(props: { onNext: () => void }) {
 				<form
 					className="flex flex-col gap-3"
 					id="form"
-					onSubmit={e => {
+					onSubmit={async e => {
 						e.preventDefault()
 						props.onNext()
+
+						await setNightMode(queryString)
 
 						const game = new Game({
 							queryString,
@@ -52,9 +66,15 @@ function SplashScreen(props: { onNext: () => void }) {
 
 function ScoreDisplay() {
 	const score = useAtomValue(scoreAtom)
+	const isNightMode = useAtomValue(nightModeAtom)
 
 	return (
-		<div className="absolute top-0 right-0 bg-black w-[70px] h-[50px] rounded-bl-xl flex items-center justify-center text-green-600 text-2xl font-bold">
+		<div
+			className={clsx(
+				"absolute top-0 right-0 w-[70px] h-[50px] rounded-bl-xl flex items-center justify-center text-green-600 text-2xl font-bold",
+				isNightMode ? "bg-white" : "bg-black"
+			)}
+		>
 			{score}/5
 		</div>
 	)

@@ -16,6 +16,7 @@
 		"@types/lodash": "^4.17.13",
 		"@types/murmurhash-js": "^1.0.6",
 		"@types/react": "^19.0.2",
+		"@types/sentiment": "^5.0.4",
 		"@types/three": "^0.171.0",
 		"@vitejs/plugin-react": "^4.3.4",
 		"better-sqlite3": "^11.7.0",
@@ -38,6 +39,7 @@
 		"nanoid": "^5.0.9",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
+		"sentiment": "^5.0.2",
 		"sqlite-vec-wasm-demo": "^0.1.6",
 		"three": "^0.171.0"
 	}

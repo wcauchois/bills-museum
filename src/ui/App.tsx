@@ -2,18 +2,16 @@ import { ReactNode, useState } from "react"
 import { Game } from "../game/Game"
 import { Provider, useAtom, useAtomValue } from "jotai"
 import { gameStateAtom, nightModeAtom, scoreAtom, store } from "./state"
-import { pipeline } from "@huggingface/transformers"
 import clsx from "clsx"
 import React from "react"
-
-const sentimentAnalysisPipeline = pipeline("sentiment-analysis")
+import Sentiment from "sentiment"
 
 async function setNightMode(queryString: string) {
-	const pipe = await sentimentAnalysisPipeline
-	const result = await pipe(queryString)
+	const sentiment = new Sentiment()
+	const result = sentiment.analyze(queryString)
 	console.log("Sentiment analysis result:", result)
-	const isNegative = (result as any)[0].label === "NEGATIVE"
-	store.set(nightModeAtom, isNegative)
+	const isPositive = result.score >= 0
+	store.set(nightModeAtom, !isPositive)
 }
 
 function CenteredDialog(props: { children: ReactNode }) {

@@ -170,7 +170,7 @@ function GameOverScreen() {
 			<div className="flex flex-col items-center gap-3">
 				<div className="text-4xl font-semibold italic">You win</div>
 				<div>
-					You went on a tour of Bill’s museum and collected{" "}
+					You went on a tour of Bill’s Museum and collected{" "}
 					{Game.NUM_MAZE_OBJECTS} objects.
 				</div>
 				<Button

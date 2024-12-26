@@ -25,7 +25,7 @@ async function setNightMode(queryString: string) {
 function CenteredDialog(props: { children: ReactNode }) {
 	return (
 		<div className="w-full h-full flex flex-col items-center justify-center pointer-events-auto">
-			<div className="w-[650px] min-h-[300px] text-white text-xl text-center border p-3 rounded border-white flex flex-col justify-center">
+			<div className="w-[650px] min-h-[300px] text-white text-xl text-center border-2 p-3 rounded border-white flex flex-col justify-center">
 				{props.children}
 			</div>
 		</div>
@@ -78,9 +78,10 @@ function SplashScreen(props: { onNext: () => void }) {
 					game.start()
 				}}
 			>
-				<div className="text-2xl font-semibold italic">
-					What’s on your mind?
+				<div className="text-4xl font-semibold underline mb-4">
+					Welcome to Bill’s Museum
 				</div>
+				<div className="text-2xl italic">What’s on your mind?</div>
 				<div>
 					<input
 						type="text"
@@ -167,7 +168,11 @@ function GameOverScreen() {
 	return (
 		<CenteredDialog>
 			<div className="flex flex-col items-center gap-3">
-				<div className="text-2xl font-semibold italic">You win</div>
+				<div className="text-4xl font-semibold italic">You win</div>
+				<div>
+					You went on a tour of Bill’s museum and collected{" "}
+					{Game.NUM_MAZE_OBJECTS} objects.
+				</div>
 				<Button
 					onClick={() => {
 						location.reload()

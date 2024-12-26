@@ -13,6 +13,7 @@ import { Entity } from "./Entity"
 import { allRotatingShapeTypes, RotatingShape } from "./RotatingShape"
 import { Direction2D } from "./Direction2D"
 import { gameStateAtom, nightModeAtom, scoreAtom, store } from "../ui/state"
+import { AudioManager } from "./AudioManager"
 
 const FREE_CAMERA = false
 
@@ -27,6 +28,7 @@ export class Game {
 	private queryString: string
 	private wallGroup: THREE.Group
 	private maze: MazeGenerator
+	private audioManager: AudioManager
 
 	constructor(args: { queryString: string }) {
 		this.queryString = args.queryString
@@ -42,6 +44,8 @@ export class Game {
 			0.1,
 			1000
 		)
+
+		this.audioManager = new AudioManager(this.camera)
 
 		this.setupObjects()
 
@@ -61,6 +65,7 @@ export class Game {
 			  })
 			: new WalkingCameraController({
 					camera: this.camera,
+					audioManager: this.audioManager,
 					inputController: this.inputController,
 					initialPosition: this.mazeToWorld(0, 0).setY(1),
 					// Choose a rotation such that they're not facing the wall.
@@ -497,6 +502,7 @@ export class Game {
 			const intersects = entity.getBoundingBox().intersectsBox(cameraBox)
 			if (intersects) {
 				this.removeEntity(entity)
+				this.audioManager.playOnce("retro-coin")
 				store.set(scoreAtom, score => score + 1)
 				this.maybeTriggerEnd()
 			}

@@ -1,7 +1,13 @@
 import { ReactNode, useState } from "react"
 import { Game } from "../game/Game"
 import { Provider, useAtom, useAtomValue } from "jotai"
-import { gameStateAtom, nightModeAtom, scoreAtom, store } from "./state"
+import {
+	audioOnAtom,
+	gameStateAtom,
+	nightModeAtom,
+	scoreAtom,
+	store,
+} from "./state"
 import clsx from "clsx"
 import React from "react"
 import Sentiment from "sentiment"
@@ -26,17 +32,22 @@ function CenteredDialog(props: { children: ReactNode }) {
 
 function Button(props: {
 	onClick?: () => void
-	children: ReactNode
+	children?: ReactNode
 	as?: "div" | "input"
 	type?: "submit"
+	value?: string
+	className?: string
 }) {
 	return React.createElement(
 		props.as ?? "div",
 		{
 			onClick: props.onClick,
-			className:
+			className: clsx(
 				"border border-white rounded px-4 py-1 cursor-pointer hover:bg-gray-700",
+				props.className
+			),
 			type: props.type,
+			value: props.value,
 		},
 		props.as !== "input" ? props.children : undefined
 	)
@@ -78,13 +89,32 @@ function SplashScreen(props: { onNext: () => void }) {
 						onChange={e => setQueryString(e.currentTarget.value)}
 					/>
 				</div>
-				<div>
-					<Button as="input" type="submit">
-						Submit
-					</Button>
+				<div className="flex justify-center gap-3">
+					<Button as="input" type="submit" value="Play" />
+					<AudioButton />
 				</div>
 			</form>
 		</CenteredDialog>
+	)
+}
+
+function AudioButton() {
+	const [audioOn, setAudioOn] = useAtom(audioOnAtom)
+
+	return (
+		<Button
+			className="flex"
+			onClick={() => {
+				setAudioOn(!audioOn)
+			}}
+		>
+			<img
+				src={audioOn ? "/audio-on.svg" : "/audio-off.svg"}
+				width="24"
+				height="24"
+				style={{ display: "block" }}
+			/>
+		</Button>
 	)
 }
 
@@ -95,7 +125,7 @@ function ScoreDisplay() {
 	return (
 		<div
 			className={clsx(
-				"absolute top-0 right-0 w-[70px] h-[50px] rounded-bl-xl flex items-center justify-center text-green-600 text-2xl font-bold",
+				"absolute top-0 right-0 w-[70px] h-[50px] rounded-bl-xl flex items-center justify-center text-green-600 text-2xl font-bold select-none",
 				isNightMode ? "bg-white" : "bg-black"
 			)}
 		>

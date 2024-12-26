@@ -3,6 +3,7 @@ import { clamp } from "lodash"
 import { InputController } from "../InputController"
 import { CameraController } from "./CameraController"
 import _ from "lodash"
+import { AudioManager } from "../AudioManager"
 
 /**
  * https://www.youtube.com/watch?v=oqKzxPMLWxo
@@ -19,12 +20,14 @@ export class WalkingCameraController implements CameraController {
 	private isJumping: boolean
 	private velocityY: number
 	private floorY: number
+	private audioManager: AudioManager
 
 	constructor(args: {
 		inputController: InputController
 		camera: THREE.Camera
 		initialPosition: THREE.Vector3
 		initialYRotation: number
+		audioManager: AudioManager
 	}) {
 		this.input = args.inputController
 		this.camera = args.camera
@@ -37,6 +40,7 @@ export class WalkingCameraController implements CameraController {
 		this.headBobTimer = 0
 		this.isJumping = false
 		this.velocityY = 0
+		this.audioManager = args.audioManager
 	}
 
 	update(timeElapsedS: number) {
@@ -45,6 +49,22 @@ export class WalkingCameraController implements CameraController {
 		this.updateHeadBob(timeElapsedS)
 		this.updateJump()
 		this.updateCamera()
+		this.playFootsteps(timeElapsedS)
+	}
+
+	private nextFootstep = 0
+	private playFootsteps(timeElapsedS: number) {
+		if (!this.headBobActive) {
+			return
+		}
+
+		if (this.nextFootstep <= 0) {
+			this.audioManager.playOnce("footstep", {
+				volume: 2,
+			})
+			this.nextFootstep = 0.4 + Math.random() * 0.1
+		}
+		this.nextFootstep -= timeElapsedS
 	}
 
 	private updateCamera() {
@@ -58,11 +78,14 @@ export class WalkingCameraController implements CameraController {
 		this.velocityY -= 0.02
 	}, 16)
 
+	private whichJumpSound = false
 	private updateJump() {
 		if (!this.isJumping) {
 			if (this.input.keys[" "]) {
 				this.isJumping = true
 				this.velocityY = 0.25
+				this.audioManager.playOnce(this.whichJumpSound ? "jump1" : "jump2")
+				this.whichJumpSound = !this.whichJumpSound
 			}
 		} else {
 			this.simulateJumpPhysicsThrottled()

@@ -3,7 +3,6 @@ import { default as initSqlite } from "../vendor/sqlite3.mjs"
 import { FeatureExtractionPipeline, pipeline } from "@huggingface/transformers"
 import { makeDeferred } from "../lib/utils"
 import * as Comlink from "comlink"
-import { string } from "three/tsl"
 
 // https://github.com/rhashimoto/wa-sqlite/discussions/221
 async function writeFileToOPFS(fileName: string, blob: Blob) {
@@ -93,14 +92,6 @@ const workerApi = {
 		)
 
 		return result.map(row => row.body as string)
-	},
-
-	async isPositiveSentiment(query: string): Promise<boolean> {
-		const pipe = await pipeline("sentiment-analysis")
-		const result = await pipe(query)
-		console.log("Sentiment analysis result:", result)
-		const isPositive = (result as any)[0].label === "POSITIVE"
-		return isPositive
 	},
 }
 

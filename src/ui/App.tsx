@@ -5,7 +5,6 @@ import { gameStateAtom, nightModeAtom, scoreAtom, store } from "./state"
 import { pipeline } from "@huggingface/transformers"
 import clsx from "clsx"
 import React from "react"
-import { worker } from "../worker/workerClient"
 
 // const sentimentAnalysisPipeline = pipeline("sentiment-analysis")
 
@@ -14,8 +13,7 @@ async function setNightMode(queryString: string) {
 	// const result = await pipe(queryString)
 	// console.log("Sentiment analysis result:", result)
 	// const isNegative = (result as any)[0].label === "NEGATIVE"
-	const isPositive = await worker.isPositiveSentiment(queryString)
-	store.set(nightModeAtom, !isPositive)
+	// store.set(nightModeAtom, isNegative)
 }
 
 function CenteredDialog(props: { children: ReactNode }) {

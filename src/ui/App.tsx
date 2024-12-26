@@ -1,9 +1,10 @@
-import { ReactNode, useState } from "react"
+import { ReactNode, useEffect, useRef, useState } from "react"
 import { Game } from "../game/Game"
 import { Provider, useAtom, useAtomValue } from "jotai"
 import {
 	audioOnAtom,
 	gameStateAtom,
+	hideHelpAtom,
 	nightModeAtom,
 	scoreAtom,
 	store,
@@ -11,6 +12,7 @@ import {
 import clsx from "clsx"
 import React from "react"
 import Sentiment from "sentiment"
+import { isMobile } from "../lib/utils"
 
 async function setNightMode(queryString: string) {
 	const sentiment = new Sentiment()
@@ -33,10 +35,11 @@ function CenteredDialog(props: { children: ReactNode }) {
 function Button(props: {
 	onClick?: () => void
 	children?: ReactNode
-	as?: "div" | "input"
+	as?: "div" | "input" | "a"
 	type?: "submit"
 	value?: string
 	className?: string
+	href?: string
 }) {
 	return React.createElement(
 		props.as ?? "div",
@@ -48,6 +51,7 @@ function Button(props: {
 			),
 			type: props.type,
 			value: props.value,
+			href: props.href,
 		},
 		props.as !== "input" ? props.children : undefined
 	)
@@ -134,6 +138,31 @@ function ScoreDisplay() {
 	)
 }
 
+function HelpText() {
+	const isNightMode = useAtomValue(nightModeAtom)
+	const hideHelp = useAtomValue(hideHelpAtom)
+
+	return (
+		<div
+			className={clsx(
+				"absolute bottom-0 w-full h-[30vh] flex items-start justify-center text-2xl select-none bg-transparent transition-opacity",
+				isNightMode ? "text-white" : "text-black",
+				hideHelp && "opacity-0"
+			)}
+			style={
+				{
+					// animationName: "fade-out",
+					// animationDuration: "5s",
+					// animationIterationCount: 1,
+					// animationFillMode: "forwards",
+				}
+			}
+		>
+			Click to look around. WSAD to move.
+		</div>
+	)
+}
+
 function GameOverScreen() {
 	return (
 		<CenteredDialog>
@@ -159,15 +188,41 @@ function AppInner() {
 			{gameState === "splash" && (
 				<SplashScreen onNext={() => setGameState("play")} />
 			)}
-			{gameState === "play" && <ScoreDisplay />}
+			{gameState === "play" && (
+				<>
+					<ScoreDisplay />
+					<HelpText />
+				</>
+			)}
 			{gameState === "over" && <GameOverScreen />}
 		</>
 	)
 }
+
+function MobileMessage() {
+	const subject = `Check out Bill’s museum`
+	const body = `${location.href}`
+	const mailLink = `mailto:?subject=${encodeURIComponent(
+		subject
+	)}&body=${encodeURIComponent(body)}`
+	return (
+		<div className="w-full h-full flex items-center justify-center text-white text-2xl text-center flex-col gap-3 pointer-events-auto">
+			<div>Sorry, this game doesn’t work on mobile</div>
+			<Button as="a" href={mailLink}>
+				Email a link to yourself
+			</Button>
+		</div>
+	)
+}
+
+function AppWithMobileCheck() {
+	return isMobile() ? <MobileMessage /> : <AppInner />
+}
+
 export function App() {
 	return (
 		<Provider store={store}>
-			<AppInner />
+			<AppWithMobileCheck />
 		</Provider>
 	)
 }

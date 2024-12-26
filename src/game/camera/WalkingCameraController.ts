@@ -4,6 +4,7 @@ import { InputController } from "../InputController"
 import { CameraController } from "./CameraController"
 import _ from "lodash"
 import { AudioManager } from "../AudioManager"
+import { hideHelpAtom, store } from "../../ui/state"
 
 /**
  * https://www.youtube.com/watch?v=oqKzxPMLWxo
@@ -142,6 +143,7 @@ export class WalkingCameraController implements CameraController {
 
 		if (forwardVelocity !== 0 || strafeVelocity !== 0) {
 			this.headBobActive = true
+			store.set(hideHelpAtom, () => true)
 		}
 	}
 

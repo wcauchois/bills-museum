@@ -11,3 +11,5 @@ export const nightModeAtom = atom(false)
 export const gameStateAtom = atom<"splash" | "play" | "over">("splash")
 
 export const audioOnAtom = atomWithStorage("audioOn", true)
+
+export const hideHelpAtom = atom(false)

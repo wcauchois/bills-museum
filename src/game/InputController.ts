@@ -1,3 +1,5 @@
+import { hideHelpAtom, store } from "../ui/state"
+
 /**
  * https://mdn.github.io/dom-examples/pointer-lock/
  */
@@ -34,6 +36,8 @@ export class InputController {
 						}
 					}
 				}
+
+				store.set(hideHelpAtom, () => true)
 			})
 			document.addEventListener("pointerlockchange", this.onPointerLockChange)
 		}

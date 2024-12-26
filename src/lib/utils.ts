@@ -50,3 +50,8 @@ export function chooseN<T>(arr: T[], n: number): T[] {
 export function hasQueryParam(name: string): boolean {
 	return new URL(window.location.href).searchParams.has(name)
 }
+
+export function isMobile() {
+	// https://stackoverflow.com/a/29509267
+	return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+}

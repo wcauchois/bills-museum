@@ -9,11 +9,11 @@ import React from "react"
 // const sentimentAnalysisPipeline = pipeline("sentiment-analysis")
 
 async function setNightMode(queryString: string) {
-	const pipe = await pipeline("sentiment-analysis")
-	const result = await pipe(queryString)
-	console.log("Sentiment analysis result:", result)
-	const isNegative = (result as any)[0].label === "NEGATIVE"
-	store.set(nightModeAtom, isNegative)
+	// const pipe = await pipeline("sentiment-analysis")
+	// const result = await pipe(queryString)
+	// console.log("Sentiment analysis result:", result)
+	// const isNegative = (result as any)[0].label === "NEGATIVE"
+	// store.set(nightModeAtom, isNegative)
 }
 
 function CenteredDialog(props: { children: ReactNode }) {

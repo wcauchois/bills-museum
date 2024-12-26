@@ -6,10 +6,10 @@ import { pipeline } from "@huggingface/transformers"
 import clsx from "clsx"
 import React from "react"
 
-const sentimentAnalysisPipeline = pipeline("sentiment-analysis")
+// const sentimentAnalysisPipeline = pipeline("sentiment-analysis")
 
 async function setNightMode(queryString: string) {
-	const pipe = await sentimentAnalysisPipeline
+	const pipe = await pipeline("sentiment-analysis")
 	const result = await pipe(queryString)
 	console.log("Sentiment analysis result:", result)
 	const isNegative = (result as any)[0].label === "NEGATIVE"

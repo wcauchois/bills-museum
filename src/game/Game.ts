@@ -340,7 +340,10 @@ export class Game {
 			while (true) {
 				const x = _.random(0, Game.MAZE_SIZE - 1)
 				const y = _.random(0, Game.MAZE_SIZE - 1)
-				if (!placements.some(([px, py]) => px === x && py === y)) {
+				if (
+					(x !== 0 || y !== 0) &&
+					!placements.some(([px, py]) => px === x && py === y)
+				) {
 					placements.push([x, y])
 					break
 				}

@@ -60,4 +60,9 @@ export const billQuotes: Array<{ text: string; author: string }> = [
 		text: "Then a smile poured into her face, mixing with the sleep like milk poured into water, while her eyes cleared like jade.",
 		author: "Samuel R. Delany",
 	},
+	{
+		// raw shark texts
+		text: "We only see starlight because all the stars are bleeding.",
+		author: "Steven Hall",
+	},
 ]

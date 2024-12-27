@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef, useState } from "react"
+import { ReactNode, useCallback, useEffect, useRef, useState } from "react"
 import { Game } from "../game/Game"
 import { Provider, useAtom, useAtomValue } from "jotai"
 import {
@@ -188,6 +188,11 @@ function GameOverScreen() {
 function AppInner() {
 	const [gameState, setGameState] = useAtom(gameStateAtom)
 
+	const [showEyes, setShowEyes] = useState(true)
+	const onEyesDone = useCallback(() => {
+		setShowEyes(false)
+	}, [])
+
 	return (
 		<>
 			{gameState === "splash" && (
@@ -195,6 +200,7 @@ function AppInner() {
 			)}
 			{gameState === "play" && (
 				<>
+					{showEyes && <EyesOpen onDone={onEyesDone} />}
 					<ScoreDisplay />
 					<HelpText />
 				</>
@@ -217,6 +223,74 @@ function MobileMessage() {
 				Email a link to yourself
 			</Button>
 		</div>
+	)
+}
+
+function easeOutQuint(x: number): number {
+	return 1 - Math.pow(1 - x, 5)
+}
+
+function EyesOpen(props: { onDone(): void }) {
+	const { onDone } = props
+
+	const canvasRef = useRef<HTMLCanvasElement>(null)
+
+	const [w] = useState(() => window.innerWidth)
+	const [h] = useState(() => window.innerHeight)
+
+	useEffect(() => {
+		const w2 = w / 2
+		const h2 = h / 2
+
+		let startTime = Date.now()
+		let animationHandle = 0
+		const durationS = 0.8
+		function animate() {
+			const seconds = (Date.now() - startTime) / 1000
+			const t = easeOutQuint(Math.min(1, seconds / durationS))
+
+			const ctx = canvasRef.current!.getContext("2d")!
+			// ctx.strokeStyle = "white"
+			ctx.fillStyle = "black"
+			ctx.resetTransform()
+
+			ctx.clearRect(0, 0, w, h)
+
+			ctx.translate(-w2, -h2)
+			ctx.scale(2, 2)
+
+			ctx.beginPath()
+			ctx.moveTo(0, h2)
+			ctx.lineTo(0, 0)
+			ctx.lineTo(w, 0)
+			ctx.lineTo(w, h2)
+			ctx.bezierCurveTo(w2, h2 - t * h2, w2, h2 - t * h2, 0, h2)
+			ctx.fill()
+
+			ctx.beginPath()
+			ctx.moveTo(0, h2)
+			ctx.lineTo(0, h)
+			ctx.lineTo(w, h)
+			ctx.lineTo(w, h2)
+			ctx.bezierCurveTo(w2, h2 + t * h2, w2, h2 + t * h2, 0, h2)
+			ctx.fill()
+
+			animationHandle = requestAnimationFrame(animate)
+
+			if (t >= 1) {
+				onDone()
+			}
+		}
+
+		animate()
+		animationHandle = requestAnimationFrame(animate)
+		return () => {
+			cancelAnimationFrame(animationHandle)
+		}
+	}, [onDone])
+
+	return (
+		<canvas ref={canvasRef} width={w} height={h} className="w-full h-full" />
 	)
 }
 

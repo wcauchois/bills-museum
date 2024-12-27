@@ -55,12 +55,17 @@ async function initializeWorker() {
 	await Promise.all([initializeDatabase(), initializeExtractor()])
 }
 
+export type QuoteData = {
+	text: string
+	author: string
+}
+
 const workerApi = {
 	ping(arg: string) {
 		return "hello from worker: " + arg
 	},
 
-	async getRelevantQuotes(query: string): Promise<string[]> {
+	async getRelevantQuotes(query: string) {
 		const extractor = await loadedExtractor.promise
 		const db = await loadedDb.promise
 
@@ -78,6 +83,7 @@ const workerApi = {
 			`
         select
         body,
+				author,
         distance
         from quotes
         where embedding match $embedding
@@ -91,7 +97,12 @@ const workerApi = {
 			}
 		)
 
-		return result.map(row => row.body as string)
+		return result.map(
+			(row): QuoteData => ({
+				text: row.body as string,
+				author: row.author as string,
+			})
+		)
 	},
 }
 

@@ -12,7 +12,13 @@ import { getBrokenLinesForCanvas } from "./gameUtils"
 import { Entity } from "./Entity"
 import { allRotatingShapeTypes, RotatingShape } from "./RotatingShape"
 import { Direction2D } from "./Direction2D"
-import { gameStateAtom, nightModeAtom, scoreAtom, store } from "../ui/state"
+import {
+	gameStateAtom,
+	nightModeAtom,
+	quotesAtom,
+	scoreAtom,
+	store,
+} from "../ui/state"
 import { AudioManager } from "./AudioManager"
 
 const FREE_CAMERA = false
@@ -243,11 +249,13 @@ export class Game {
 		font.load()
 
 		const quotes = await worker.getRelevantQuotes(this.queryString)
+		store.set(quotesAtom, quotes)
 		;(window as any).__debugQuotes = quotes
+
 		await document.fonts.ready
 
 		for (const [i, mesh] of chooseN(allWallMeshes, 10).entries()) {
-			const quote = quotes[i]
+			const quote = quotes[i].text
 			const frontCanvas = document.createElement("canvas")
 			frontCanvas.width = 512
 			frontCanvas.height = 512

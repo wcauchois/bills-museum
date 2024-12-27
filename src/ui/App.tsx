@@ -6,6 +6,7 @@ import {
 	gameStateAtom,
 	hideHelpAtom,
 	nightModeAtom,
+	quotesAtom,
 	scoreAtom,
 	store,
 } from "./state"
@@ -139,6 +140,103 @@ function ScoreDisplay() {
 	)
 }
 
+function InfoModal(props: { onClose: () => void }) {
+	const { onClose } = props
+
+	const quotes = useAtomValue(quotesAtom)
+	const [showQuote, setShowQuote] = useState(false)
+
+	return (
+		<div
+			className="absolute top-0 right-0 bottom-0 left-0 flex items-center justify-center pointer-events-auto"
+			onClick={e => {
+				if (e.currentTarget === e.target) {
+					onClose()
+				}
+			}}
+		>
+			<div className="w-[450px] h-[70vh] bg-black text-white p-2 flex flex-col">
+				<div className="flex flex-col grow overflow-scroll gap-2">
+					<div>Thanks for playing Bill’s Museum.</div>
+					<div>
+						This game uses quotes from various people. These people are listed
+						below. It’s recommended that you explore the game to find the
+						quotes, but if you want to attribute a specific quote then{" "}
+						<span
+							className="underline cursor-pointer"
+							onClick={() => setShowQuote(!showQuote)}
+						>
+							click here
+						</span>{" "}
+						to show the quotes as well.
+					</div>
+					<div>
+						<ul className="list-disc ml-4">
+							{quotes.map((quote, i) => (
+								<li key={i}>
+									{showQuote ? (
+										<>
+											“{quote.text}” &ndash; {quote.author}
+										</>
+									) : (
+										quote.author
+									)}
+								</li>
+							))}
+						</ul>
+					</div>
+				</div>
+				<div className="flex justify-center mt-1">
+					<div
+						className="underline cursor-pointer px-1"
+						onClick={() => {
+							onClose()
+						}}
+					>
+						Close this window
+					</div>
+				</div>
+			</div>
+		</div>
+	)
+}
+
+function InfoDisplay() {
+	const isNightMode = useAtomValue(nightModeAtom)
+	const [infoModalOpen, setInfoModalOpen] = useState(false)
+
+	return (
+		<>
+			<div
+				className={clsx(
+					"absolute bottom-0 right-0 w-[35px] h-[35px] rounded-tl-xl flex items-center justify-center text-green-600 text-2xl font-bold select-none",
+					isNightMode ? "bg-white" : "bg-black"
+				)}
+			>
+				<div
+					className="pointer-events-auto cursor-pointer p-1 flex justify-center items-center"
+					onClick={() => {
+						setInfoModalOpen(true)
+					}}
+				>
+					<img
+						src={isNightMode ? "/info-icon-dark.svg" : "/info-icon.svg"}
+						width="20"
+						height="20"
+					/>
+				</div>
+			</div>
+			{infoModalOpen && (
+				<InfoModal
+					onClose={() => {
+						setInfoModalOpen(false)
+					}}
+				/>
+			)}
+		</>
+	)
+}
+
 function HelpText() {
 	const isNightMode = useAtomValue(nightModeAtom)
 	const hideHelp = useAtomValue(hideHelpAtom)
@@ -203,6 +301,7 @@ function AppInner() {
 					{showEyes && <EyesOpen onDone={onEyesDone} />}
 					<ScoreDisplay />
 					<HelpText />
+					<InfoDisplay />
 				</>
 			)}
 			{gameState === "over" && <GameOverScreen />}

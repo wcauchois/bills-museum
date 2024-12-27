@@ -66,7 +66,8 @@ db.prepare(
 	`
 create virtual table quotes using vec0(
   embedding float[384],
-  body text
+  body text,
+	author text
 );
 `
 ).run()
@@ -100,10 +101,9 @@ for (const [rowIndex, row] of inputRows.entries()) {
 	for (let i = 0; i < 384; i++) {
 		embedding[i] = embeddings[rowIndex][i]
 	}
-	db.prepare(`insert into quotes (embedding, body) values (?, ?)`).run(
-		embedding,
-		row.text
-	)
+	db.prepare(
+		`insert into quotes (embedding, body, author) values (?, ?, ?)`
+	).run(embedding, row.text, row.author)
 }
 
 console.log("Done!")

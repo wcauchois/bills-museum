@@ -157,7 +157,18 @@ function InfoModal(props: { onClose: () => void }) {
 		>
 			<div className="w-[450px] h-[70vh] bg-black text-white p-2 flex flex-col">
 				<div className="flex flex-col grow overflow-scroll gap-2">
-					<div>Thanks for playing Bill’s Museum.</div>
+					<div>
+						Thanks for playing Bill’s Museum. You can read more about how I made
+						it{" "}
+						<a
+							href="https://wcauchois.notion.site/bills-museum"
+							target="_blank"
+							className="underline"
+						>
+							here
+						</a>
+						.
+					</div>
 					<div>
 						This game uses quotes from various people. These people are listed
 						below. It’s recommended that you explore the game to find the

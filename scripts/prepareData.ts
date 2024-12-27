@@ -3,6 +3,7 @@ import * as sqliteVec from "sqlite-vec"
 import Database from "better-sqlite3"
 import { pipeline } from "@huggingface/transformers"
 import _ from "lodash"
+import { billQuotes } from "./billQuotes"
 
 const outputDatabaseName = "public/quotes.db"
 
@@ -41,6 +42,9 @@ const inputRows = allInputRows.filter(
 // 	...row,
 // 	quote: row.quote.replace(/^“/, "").replace(/”$/, ""),
 // }))
+
+inputRows.push(...billQuotes)
+
 console.log(`Filtered down to ${inputRows.length} rows`)
 
 try {

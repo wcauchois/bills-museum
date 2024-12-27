@@ -249,7 +249,10 @@ function EyesOpen(props: { onDone(): void }) {
 			const seconds = (Date.now() - startTime) / 1000
 			const t = easeOutQuint(Math.min(1, seconds / durationS))
 
-			const ctx = canvasRef.current!.getContext("2d")!
+			if (!canvasRef.current) {
+				return
+			}
+			const ctx = canvasRef.current.getContext("2d")!
 			// ctx.strokeStyle = "white"
 			ctx.fillStyle = "black"
 			ctx.resetTransform()

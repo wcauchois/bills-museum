@@ -243,6 +243,7 @@ export class Game {
 		font.load()
 
 		const quotes = await worker.getRelevantQuotes(this.queryString)
+		;(window as any).__debugQuotes = quotes
 		await document.fonts.ready
 
 		for (const [i, mesh] of chooseN(allWallMeshes, 10).entries()) {

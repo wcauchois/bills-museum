@@ -889,6 +889,37 @@ video {
   }
 }
 
+/*
+https://stackoverflow.com/a/54702294
+*/
+
+.rainbow-text {
+  background: linear-gradient(
+		to right,
+		#6666ff,
+		#0099ff,
+		#00ff00,
+		#ff3399,
+		#6666ff
+	);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: rainbow-animation 6s linear infinite;
+  background-size: 400% 100%;
+}
+
+@keyframes rainbow-animation {
+  0%,
+	100% {
+    background-position: 0 0;
+  }
+
+  50% {
+    background-position: 100% 0;
+  }
+}
+
 .hover\:bg-gray-700:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(55 65 81 / var(--tw-bg-opacity, 1));

@@ -277,7 +277,9 @@ function GameOverScreen() {
 	return (
 		<CenteredDialog>
 			<div className="flex flex-col items-center gap-3">
-				<div className="text-4xl font-semibold italic">You win</div>
+				<div className="text-4xl font-semibold italic rainbow-text">
+					You win
+				</div>
 				<div>
 					You went on a tour of Bill’s Museum and collected{" "}
 					{Game.NUM_MAZE_OBJECTS} objects.
